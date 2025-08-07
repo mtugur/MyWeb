@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\MyWeb.Core\MyWeb.Core.csproj" />
+    <ProjectReference Include="..\..\Modules\Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
