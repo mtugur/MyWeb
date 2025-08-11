@@ -5,6 +5,10 @@
     <ProjectReference Include="..\..\Modules\Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.8" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
