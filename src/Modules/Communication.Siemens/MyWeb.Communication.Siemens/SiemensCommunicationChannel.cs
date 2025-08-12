@@ -1,163 +1,597 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MyWeb.Core.Communication;
 using S7.Net;
+using S7.Net.Types;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 
 namespace MyWeb.Communication.Siemens
 {
-    public class SiemensCommunicationChannel : ICommunicationChannel, IDisposable
+    /// <summary>
+    /// Siemens S7-1200/1500 için S7.NetPlus tabanlı haberleşme kanalı.
+    /// - Bool/Byte/SInt/Word/Int/DWord/UDInt/DInt/LWord/ULInt/LInt/Real/LReal/STRING/WSTRING desteği
+    /// - STRING: CP1254, WSTRING: UTF-16 BE
+    /// - Toplu okuma: uygun tipler (Bit/Byte/Word/Int/DWord/DInt/UDInt) ReadMultipleVars ile batch
+    /// - Sağlık bilgisi, uptime, reconnect sayaçları, loglama
+    /// </summary>
+    public class SiemensCommunicationChannel : ICommunicationChannel
     {
         private readonly Plc _plc;
-        private readonly Dictionary<string, TagDefinition> _tags = new();
+        private readonly ILogger<SiemensCommunicationChannel> _log;
+        private readonly Dictionary<string, TagDefinition> _tags = new(StringComparer.OrdinalIgnoreCase);
 
-        public SiemensCommunicationChannel(PlcConnectionSettings settings)
+        // Sağlık/sayaç alanları
+        private DateTimeOffset _lastOkUtc = DateTimeOffset.MinValue;
+        private string? _lastErrorMessage;
+        private bool _everConnected = false;
+        private DateTimeOffset? _startUtc = null;
+        private long _reconnectCount = 0;
+        private DateTimeOffset? _lastReconnectUtc = null;
+
+        public SiemensCommunicationChannel(IOptions<PlcConnectionSettings> options,
+                                           ILogger<SiemensCommunicationChannel> logger)
         {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            var settings = options.Value ?? throw new ArgumentNullException(nameof(options.Value));
+
             _plc = new Plc(settings.CpuType, settings.IP, settings.Rack, settings.Slot);
+            _log = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _log.LogInformation("SiemensChannel created. CPU={Cpu} IP={IP} Rack={Rack} Slot={Slot}",
+                settings.CpuType, settings.IP, settings.Rack, settings.Slot);
         }
 
         public bool Connect()
         {
-            if (!_plc.IsConnected) _plc.Open();
-            return _plc.IsConnected;
+            try
+            {
+                if (_plc.IsConnected)
+                {
+                    _log.LogDebug("Connect() skipped; already connected.");
+                    return true;
+                }
+
+                bool firstConnect = !_everConnected;
+
+                _log.LogInformation("Connecting to PLC...");
+                _plc.Open();
+
+                if (_plc.IsConnected)
+                {
+                    MarkOk();
+
+                    if (firstConnect)
+                    {
+                        _everConnected = true;
+                        _startUtc = _lastOkUtc;
+                        _log.LogInformation("Connected (first). StartUtc={StartUtc}", _startUtc);
+                    }
+                    else
+                    {
+                        _reconnectCount++;
+                        _lastReconnectUtc = DateTimeOffset.UtcNow;
+                        _log.LogWarning("Reconnected. ReconnectCount={Count} LastReconnect={Last}",
+                            _reconnectCount, _lastReconnectUtc);
+                    }
+                }
+                return _plc.IsConnected;
+            }
+            catch (Exception ex)
+            {
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "Connect() failed: {Msg}", ex.Message);
+                return false;
+            }
         }
 
         public void Disconnect()
         {
-            if (_plc.IsConnected) _plc.Close();
+            try
+            {
+                if (_plc.IsConnected)
+                {
+                    _plc.Close();
+                    _log.LogInformation("Disconnected from PLC.");
+                }
+                _lastErrorMessage = null;
+            }
+            catch (Exception ex)
+            {
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "Disconnect() error: {Msg}", ex.Message);
+            }
         }
 
         public bool IsConnected => _plc?.IsConnected ?? false;
 
         public void AddTag(TagDefinition tag)
         {
+            if (tag == null) throw new ArgumentNullException(nameof(tag));
             _tags[tag.Name] = tag;
+            _log.LogDebug("Tag added: {Name} -> {Addr} ({VarType})", tag.Name, tag.Address, tag.VarType);
         }
 
-        public bool RemoveTag(string tagName) => _tags.Remove(tagName);
+        public bool RemoveTag(string tagName)
+        {
+            bool removed = _tags.Remove(tagName);
+            if (removed) _log.LogDebug("Tag removed: {Name}", tagName);
+            return removed;
+        }
 
         public T ReadTag<T>(string tagName)
         {
             if (!_tags.TryGetValue(tagName, out var tag))
                 throw new KeyNotFoundException($"Tag '{tagName}' bulunamadı.");
-            Connect();
 
-            var vt = tag.VarType?.ToLowerInvariant() ?? "";
-            ParseDbAddress(tag.Address, out var dt, out var db, out var start);
+            EnsureConnected();
 
-            // — WSTRING için: 4 byte header + 2*Count bayt data —
-            if (vt == "wstring")
+            try
             {
-                int total = 4 + tag.Count * 2;
-                var buf = _plc.ReadBytes(dt, db, start, total);
-                // header: [0-1]=maxChars, [2-3]=actChars (Big endian)
-                if (BitConverter.IsLittleEndian)
-                    Array.Reverse(buf, 0, 2);
-                Array.Reverse(buf, 2, 2);
-                ushort actualChars = BitConverter.ToUInt16(buf, 2);
-                actualChars = (ushort)Math.Min(actualChars, (ushort)tag.Count);
+                string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                ParseDbAddress(tag.Address, out var dt, out var db, out var start, out var bit);
 
-                // Data portion: buf[4..4+2*actualChars]
-                var strBytes = buf.Skip(4).Take(actualChars * 2).ToArray();
-                string s = Encoding.BigEndianUnicode.GetString(strBytes);
-                return (T)(object)s!;
+                if (vt == "wstring")
+                {
+                    int total = 4 + tag.Count * 2;
+                    var buf = _plc.ReadBytes(dt, db, start, total);
+                    string s = S7StringEncoding.DecodeWString(buf, tag.Count);
+                    MarkOk();
+                    return (T)(object)s!;
+                }
+                if (vt == "string")
+                {
+                    int total = 2 + tag.Count;
+                    var buf = _plc.ReadBytes(dt, db, start, total);
+                    string s = S7StringEncoding.DecodeString(buf, tag.Count);
+                    MarkOk();
+                    return (T)(object)s!;
+                }
+                if (vt == "real" && tag.Count == 1)
+                {
+                    var b = _plc.ReadBytes(dt, db, start, 4);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    float f = BitConverter.ToSingle(b, 0);
+                    MarkOk();
+                    return (T)(object)f!;
+                }
+                if (vt == "lreal" && tag.Count == 1)
+                {
+                    var b = _plc.ReadBytes(dt, db, start, 8);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    double d = BitConverter.ToDouble(b, 0);
+                    MarkOk();
+                    return (T)(object)d!;
+                }
+                if ((vt == "lword" || vt == "ulint" || vt == "lint") && tag.Count == 2)
+                {
+                    var b = _plc.ReadBytes(dt, db, start, 8);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    object v = (vt == "lint") ? BitConverter.ToInt64(b, 0) : BitConverter.ToUInt64(b, 0);
+                    MarkOk();
+                    return (T)Convert.ChangeType(v, typeof(T));
+                }
+
+                object raw = _plc.Read(tag.Address)!;
+                object val = NormalizePrimitive(vt, raw);
+                MarkOk();
+                return (T)Convert.ChangeType(val, typeof(T));
             }
-
-            // — STRING (1 byte header + data) —
-            if (vt == "string")
+            catch (Exception ex)
             {
-                int total = 2 + tag.Count;
-                var buf = _plc.ReadBytes(dt, db, start, total);
-                int len = Math.Min(buf.Length >= 2 ? buf[1] : 0, tag.Count);
-                // Latin5/Turkish CP1254
-                var cp = Encoding.GetEncoding(1254);
-                var str = cp.GetString(buf, 2, len);
-                return (T)(object)str!;
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "ReadTag failed. Tag={Tag} Err={Msg}", tagName, ex.Message);
+                throw;
             }
-
-            // — REAL / LREAL / diğer tipler… (önceki hali koruyabilirsiniz) —
-            // … (diğer ReadTag<T> kodu) …
-
-            // Basit örnek: direkt PLC.Read
-            object raw = _plc.Read(tag.Address)!;
-            return (T)Convert.ChangeType(raw, typeof(T));
         }
 
-        public Dictionary<string, object> ReadTags(IEnumerable<string> tagNames) =>
-            tagNames.ToDictionary(n => n, n => ReadTag<object>(n)!);
+        public Dictionary<string, object> ReadTags(IEnumerable<string> tagNames)
+        {
+            EnsureConnected();
+
+            var names = tagNames?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? new List<string>();
+            var result = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            var batchables = new List<(string name, TagDefinition tag, DataItem item)>();
+            var nonBatchNames = new List<string>();
+
+            foreach (var name in names)
+            {
+                if (!_tags.TryGetValue(name, out var tag))
+                {
+                    result[name] = null!;
+                    continue;
+                }
+                if (TryBuildDataItem(tag, out var di))
+                    batchables.Add((name, tag, di));
+                else
+                    nonBatchNames.Add(name);
+            }
+
+            if (batchables.Count > 0)
+            {
+                try
+                {
+                    var items = batchables.Select(b => b.item).ToList();
+                    _plc.ReadMultipleVars(items);
+                    for (int i = 0; i < batchables.Count; i++)
+                    {
+                        var (name, tag, item) = batchables[i];
+                        string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                        result[name] = NormalizePrimitive(vt, item.Value!);
+                    }
+                    MarkOk();
+                }
+                catch (Exception ex)
+                {
+                    _lastErrorMessage = ex.Message;
+                    _log.LogWarning(ex, "Batch read failed. Fallback to single reads.");
+                    foreach (var (name, _, _) in batchables)
+                    {
+                        try { result[name] = ReadTag<object>(name)!; }
+                        catch { result[name] = null!; }
+                    }
+                }
+            }
+
+            foreach (var name in nonBatchNames)
+            {
+                try { result[name] = ReadTag<object>(name)!; }
+                catch { result[name] = null!; }
+            }
+
+            return result;
+        }
+
+        public Dictionary<string, TagValue> ReadTagsWithQuality(IEnumerable<string> tagNames)
+        {
+            EnsureConnected();
+
+            var names = tagNames?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? new List<string>();
+            var result = new Dictionary<string, TagValue>(StringComparer.OrdinalIgnoreCase);
+
+            var batchables = new List<(string name, TagDefinition tag, DataItem item)>();
+            var nonBatchNames = new List<string>();
+
+            foreach (var name in names)
+            {
+                if (!_tags.TryGetValue(name, out var tag))
+                {
+                    result[name] = new TagValue { Value = null, Quality = "Bad", TimestampUtc = DateTimeOffset.UtcNow };
+                    continue;
+                }
+                if (TryBuildDataItem(tag, out var di))
+                    batchables.Add((name, tag, di));
+                else
+                    nonBatchNames.Add(name);
+            }
+
+            if (batchables.Count > 0)
+            {
+                try
+                {
+                    var items = batchables.Select(b => b.item).ToList();
+                    _plc.ReadMultipleVars(items);
+
+                    for (int i = 0; i < batchables.Count; i++)
+                    {
+                        var (name, tag, item) = batchables[i];
+                        string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                        result[name] = new TagValue
+                        {
+                            Value = NormalizePrimitive(vt, item.Value!),
+                            Quality = "Good",
+                            TimestampUtc = DateTimeOffset.UtcNow
+                        };
+                    }
+                    MarkOk();
+                }
+                catch (Exception ex)
+                {
+                    _lastErrorMessage = ex.Message;
+                    _log.LogWarning(ex, "Batch read (quality) failed. Fallback to single reads.");
+                    foreach (var (name, _, _) in batchables)
+                    {
+                        try
+                        {
+                            result[name] = new TagValue
+                            {
+                                Value = ReadTag<object>(name),
+                                Quality = "Good",
+                                TimestampUtc = DateTimeOffset.UtcNow
+                            };
+                        }
+                        catch
+                        {
+                            result[name] = new TagValue { Value = null, Quality = "Bad", TimestampUtc = DateTimeOffset.UtcNow };
+                        }
+                    }
+                }
+            }
+
+            foreach (var name in nonBatchNames)
+            {
+                try
+                {
+                    result[name] = new TagValue
+                    {
+                        Value = ReadTag<object>(name),
+                        Quality = "Good",
+                        TimestampUtc = DateTimeOffset.UtcNow
+                    };
+                }
+                catch
+                {
+                    result[name] = new TagValue { Value = null, Quality = "Bad", TimestampUtc = DateTimeOffset.UtcNow };
+                }
+            }
+
+            return result;
+        }
 
         public bool WriteTag(string tagName, object value)
         {
             if (!_tags.TryGetValue(tagName, out var tag))
                 throw new KeyNotFoundException($"Tag '{tagName}' bulunamadı.");
-            Connect();
 
-            var vt = tag.VarType?.ToLowerInvariant() ?? "";
-            ParseDbAddress(tag.Address, out var dt, out var db, out var start);
+            EnsureConnected();
 
-            object actual = value;
-            if (value is JsonElement je)
+            try
             {
-                // … (önceki JsonElement parse kodunuz) …
-            }
+                string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                ParseDbAddress(tag.Address, out var dt, out var db, out var start, out var bit);
 
-            // — WSTRING yazma —
-            if (vt == "wstring" && actual is string ws)
-            {
-                ushort max = (ushort)tag.Count;
-                ushort act = (ushort)Math.Min(ws.Length, tag.Count);
-                // Big-Endian Unicode
-                var header = new byte[4];
-                var maxB = BitConverter.GetBytes(max);
-                var actB = BitConverter.GetBytes(act);
-                if (BitConverter.IsLittleEndian)
+                object actual = value;
+                if (value is JsonElement je)
                 {
-                    Array.Reverse(maxB);
-                    Array.Reverse(actB);
+                    actual = vt switch
+                    {
+                        "bit" => je.GetBoolean(),
+                        "byte" => je.GetByte(),
+                        "sint" => (sbyte)je.GetInt32(),
+                        "word" => je.GetInt32(),
+                        "int" => je.GetInt32(),
+                        "dword" => je.GetUInt32(),
+                        "udint" => je.GetUInt32(),
+                        "dint" => je.GetInt32(),
+                        "real" => (float)je.GetDouble(),
+                        "lreal" => je.GetDouble(),
+                        "string" => je.GetString() ?? string.Empty,
+                        "ulint" => je.GetUInt64(),
+                        "lword" => je.GetUInt64(),
+                        "lint" => je.GetInt64(),
+                        "wstring" => je.GetString() ?? string.Empty,
+                        _ => throw new NotSupportedException($"VarType '{tag.VarType}' bilinmiyor.")
+                    };
                 }
-                Array.Copy(maxB, 0, header, 0, 2);
-                Array.Copy(actB, 0, header, 2, 2);
 
-                var strBytes = Encoding.BigEndianUnicode.GetBytes(ws);
-                var buf = new byte[4 + tag.Count * 2];
-                Array.Copy(header, 0, buf, 0, 4);
-                Array.Copy(strBytes, 0, buf, 4, Math.Min(strBytes.Length, tag.Count * 2));
+                if (vt == "wstring" && actual is string ws)
+                {
+                    var buf = S7StringEncoding.EncodeWString(ws, tag.Count);
+                    _plc.WriteBytes(dt, db, start, buf);
+                    MarkOk();
+                    _log.LogDebug("WSTRING write OK: {Name}", tagName);
+                    return true;
+                }
 
-                _plc.WriteBytes(dt, db, start, buf);
+                if (vt == "string" && actual is string s)
+                {
+                    var buf = S7StringEncoding.EncodeString(s, tag.Count);
+                    _plc.WriteBytes(dt, db, start, buf);
+                    MarkOk();
+                    _log.LogDebug("STRING write OK: {Name}", tagName);
+                    return true;
+                }
+
+                if (vt == "real" && actual is IConvertible)
+                {
+                    float f = Convert.ToSingle(actual);
+                    var b = BitConverter.GetBytes(f);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    _plc.WriteBytes(dt, db, start, b);
+                    MarkOk();
+                    _log.LogDebug("REAL write OK: {Name}={Val}", tagName, f);
+                    return true;
+                }
+
+                if (vt == "lreal" && actual is IConvertible)
+                {
+                    double d = Convert.ToDouble(actual);
+                    var b = BitConverter.GetBytes(d);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    _plc.WriteBytes(dt, db, start, b);
+                    MarkOk();
+                    _log.LogDebug("LREAL write OK: {Name}={Val}", tagName, d);
+                    return true;
+                }
+
+                if ((vt == "lword" || vt == "ulint" || vt == "lint") && actual is IConvertible)
+                {
+                    byte[] b = vt == "lint"
+                        ? BitConverter.GetBytes(Convert.ToInt64(actual))
+                        : BitConverter.GetBytes(Convert.ToUInt64(actual));
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    _plc.WriteBytes(dt, db, start, b);
+                    MarkOk();
+                    _log.LogDebug("64-bit write OK: {Name} ({Type})", tagName, vt);
+                    return true;
+                }
+
+                object w = vt switch
+                {
+                    "bit" => Convert.ToBoolean(actual),
+                    "byte" => Convert.ToByte(actual),
+                    "sint" => unchecked((byte)Convert.ToSByte(actual)), // S7.Net "byte" bekler
+                    "word" => Convert.ToUInt16(actual),
+                    "int" => Convert.ToInt16(actual),
+                    "dword" => Convert.ToUInt32(actual),
+                    "udint" => Convert.ToUInt32(actual),
+                    "dint" => Convert.ToInt32(actual),
+                    _ => throw new NotSupportedException($"VarType '{tag.VarType}' bilinmiyor.")
+                };
+
+                _plc.Write(tag.Address, w);
+                MarkOk();
+                _log.LogDebug("Write OK: {Name}={Val}", tagName, w);
                 return true;
             }
-
-            // — STRING yazma (ASCII/CP1254) —
-            if (vt == "string" && actual is string s)
+            catch (Exception ex)
             {
-                var cp = Encoding.GetEncoding(1254);
-                var data = cp.GetBytes(s);
-                int len = Math.Min(data.Length, tag.Count);
-                var buf = new byte[tag.Count + 2];
-                buf[0] = (byte)tag.Count;
-                buf[1] = (byte)len;
-                Array.Copy(data, 0, buf, 2, len);
-                _plc.WriteBytes(dt, db, start, buf);
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "WriteTag failed. Tag={Tag} Err={Msg}", tagName, ex.Message);
+                return false;
+            }
+        }
+
+        public bool TryReadTag<T>(string tagName, out T value, out string? error)
+        {
+            try
+            {
+                value = ReadTag<T>(tagName);
+                error = null;
                 return true;
             }
+            catch (Exception ex)
+            {
+                value = default!;
+                error = ex.Message;
+                return false;
+            }
+        }
 
-            // — Diğer tiplere (örnek) —
-            _plc.Write(tag.Address, actual);
+        public ChannelHealth GetHealth()
+        {
+            var now = DateTimeOffset.UtcNow;
+            double uptime = 0;
+            if (_startUtc.HasValue)
+            {
+                if (IsConnected) uptime = (now - _startUtc.Value).TotalSeconds;
+                else if (_lastOkUtc != DateTimeOffset.MinValue) uptime = (_lastOkUtc - _startUtc.Value).TotalSeconds;
+            }
+
+            return new ChannelHealth
+            {
+                IsConnected = IsConnected,
+                LastOkUtc = _lastOkUtc,
+                LastErrorMessage = _lastErrorMessage,
+                StartTimeUtc = _startUtc,
+                UptimeSeconds = uptime < 0 ? 0 : uptime,
+                ReconnectCount = _reconnectCount,
+                LastReconnectUtc = _lastReconnectUtc
+            };
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                Disconnect();
+                (_plc as IDisposable)?.Dispose();
+            }
+            catch
+            {
+                // yut
+            }
+        }
+
+        // ----------------- Yardımcılar -----------------
+
+        private void EnsureConnected()
+        {
+            if (_plc.IsConnected) return;
+
+            // Bağlı değilsek Connect dene; olmazsa bir kez daha deneyip bırak.
+            if (!Connect())
+            {
+                _log.LogWarning("EnsureConnected: first connect failed; retrying once...");
+                System.Threading.Thread.Sleep(200);
+                if (!Connect())
+                    throw new InvalidOperationException("PLC’ye bağlanılamadı.");
+            }
+        }
+
+        private void MarkOk()
+        {
+            _lastOkUtc = DateTimeOffset.UtcNow;
+            _lastErrorMessage = null;
+        }
+
+        private void ParseDbAddress(string addr, out DataType dt, out int db, out int start, out byte bit)
+        {
+            dt = DataType.DataBlock;
+            bit = 0;
+
+            int dot = addr.IndexOf('.');
+            db = int.Parse(addr.Substring(2, dot - 2));
+            string after = addr[(dot + 1)..].ToUpperInvariant();
+
+            if (after.StartsWith("DBX"))
+            {
+                var parts = after.Substring(3).Split('.');
+                start = int.Parse(parts[0]);
+                if (parts.Length > 1) bit = byte.Parse(parts[1]);
+                return;
+            }
+
+            string digits = new string(after.Where(char.IsDigit).ToArray());
+            start = int.Parse(digits);
+        }
+
+        private bool TryBuildDataItem(TagDefinition tag, out DataItem item)
+        {
+            item = null!;
+            if (tag == null) return false;
+
+            string vt = tag.VarType?.ToLowerInvariant() ?? "";
+            bool supported = vt is "bit" or "byte" or "word" or "int" or "dword" or "udint" or "dint";
+            if (!supported) return false;
+
+            if (!tag.Address.StartsWith("DB", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            ParseDbAddress(tag.Address, out var dt, out var db, out var start, out var bit);
+
+            VarType? s7vt = vt switch
+            {
+                "bit" => VarType.Bit,
+                "byte" => VarType.Byte,
+                "word" => VarType.Word,
+                "int" => VarType.Int,
+                "dword" => VarType.DWord,
+                "udint" => VarType.DWord,
+                "dint" => VarType.DInt,
+                _ => null
+            };
+            if (s7vt == null) return false;
+
+            item = new DataItem
+            {
+                DataType = dt,
+                DB = db,
+                StartByteAdr = start,
+                BitAdr = bit,
+                VarType = s7vt.Value,
+                Count = 1
+            };
             return true;
         }
 
-        public void Dispose() => Disconnect();
-
-        private void ParseDbAddress(string addr, out DataType dt, out int db, out int start)
+        private object NormalizePrimitive(string vt, object raw)
         {
-            dt = DataType.DataBlock;
-            int dot = addr.IndexOf('.');
-            db = int.Parse(addr.Substring(2, dot - 2));
-            var after = addr.Substring(dot + 1);
-            var num = new string(after.Where(char.IsDigit).ToArray());
-            start = int.Parse(num);
+            return vt switch
+            {
+                "bit" => Convert.ToBoolean(raw),
+                "byte" => Convert.ToByte(raw),
+                "sint" => unchecked((sbyte)Convert.ToByte(raw)),
+                "word" => Convert.ToUInt16(raw),
+                "int" => raw is short s ? s : unchecked((short)Convert.ToUInt16(raw)),
+                "dword" => Convert.ToUInt32(raw),
+                "udint" => Convert.ToUInt32(raw),
+                "dint" => raw is int i ? i : unchecked((int)Convert.ToUInt32(raw)),
+                _ => raw
+            };
         }
     }
 }
