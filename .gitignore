@@ -1,19 +1,29 @@
-﻿# build output
+﻿# .NET
 bin/
 obj/
-out/
-Logs/
+**/bin/
+**/obj/
 *.user
 *.suo
+*.userosscache
 *.userprefs
+
+# Build çıkışları
+*.log
+Logs/
+*.nupkg
+*.snupkg
+
+# Rider / VS Code / VS
+.idea/
+.vscode/
 .vs/
-*.swp
-*.cache
-*.db
-*.opendb
 
-# publish
-publish/
+# Paketler ve yerel dosyalar
+_packages/*.zip
+_packages/*.mywebpkg
+_postman/**/generated/*
+!/ _postman/*.json
 
-# secrets / local overrides
-src/WebApp/MyWeb.WebApp/appsettings.Development.Local.json
+# Secret'lar (eğer kullanırsan)
+**/secrets.json
