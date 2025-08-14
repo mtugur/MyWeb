@@ -1,17 +1,19 @@
-## Build
-**/bin/
-**/obj/
-
-## Visual Studio
-.vs/
+﻿# build output
+bin/
+obj/
+out/
+Logs/
 *.user
 *.suo
+*.userprefs
+.vs/
+*.swp
+*.cache
+*.db
+*.opendb
 
-## Rider
-.idea/
+# publish
+publish/
 
-## macOS
-.DS_Store
-
-## Logs
-*.log
+# secrets / local overrides
+src/WebApp/MyWeb.WebApp/appsettings.Development.Local.json
