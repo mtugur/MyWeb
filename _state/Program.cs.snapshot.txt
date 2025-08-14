@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection; // CreateScope/GetRequiredService
 using Microsoft.Extensions.Options;
@@ -8,12 +8,12 @@ using MyWeb.Persistence.Catalog;
 using MyWeb.Persistence.Historian;
 using Serilog;
 
-// Runtime extension (HostedService/Bootstrap kayıtları için)
+// Runtime extension (HostedService/Bootstrap kayitlari i�in)
 using MyWeb.Runtime.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Kod sayfaları (ör. CP1254) ---
+// --- Kod sayfalari (�r. CP1254) ---
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 // --- Serilog ---
@@ -30,7 +30,7 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog(Log.Logger);
 
-// --- EF Core DbContext kayıtları (tek DB, iki şema: catalog/hist) ---
+// --- EF Core DbContext kayitlari (tek DB, iki sema: catalog/hist) ---
 builder.Services.AddDbContext<CatalogDbContext>(opt =>
 {
     opt.UseSqlServer(
@@ -45,14 +45,14 @@ builder.Services.AddDbContext<HistorianDbContext>(opt =>
         sql => sql.MigrationsHistoryTable("__EFMigrationsHistoryHist", "hist"));
 });
 
-// [Runtime] Bootstrap/Package yükleme + snapshot servisleri (HostedService)
+// [Runtime] Bootstrap/Package y�kleme + snapshot servisleri (HostedService)
 builder.Services.AddMyWebRuntime(builder.Configuration);
 
-// --- PLC bağlantı ayarları ---
+// --- PLC baglanti ayarlari ---
 builder.Services.Configure<PlcConnectionSettings>(
     builder.Configuration.GetSection("PlcConnectionSettings"));
 
-// --- Siemens kanalını DI ile kaydet ---
+// --- Siemens kanalini DI ile kaydet ---
 builder.Services.AddSingleton<ICommunicationChannel>(sp =>
 {
     var channel = new SiemensCommunicationChannel(
@@ -60,7 +60,7 @@ builder.Services.AddSingleton<ICommunicationChannel>(sp =>
         sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SiemensCommunicationChannel>>()
     );
 
-    // Örnek tag’ler (DB1000)
+    // �rnek tag�ler (DB1000)
     channel.AddTag(new TagDefinition { Name = "tBool", Address = "DB1000.DBX0.0", DataType = "DataBlock", VarType = "Bit", Count = 1 });
     channel.AddTag(new TagDefinition { Name = "tByte", Address = "DB1000.DBB1", DataType = "DataBlock", VarType = "Byte", Count = 1 });
     channel.AddTag(new TagDefinition { Name = "tWord", Address = "DB1000.DBW2", DataType = "DataBlock", VarType = "Word", Count = 1 });
@@ -129,7 +129,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("[EF MIGRATION ERROR] " + ex);
     }
 
-    // NOT: BootstrapRunner burada manuel çağrılmıyor; AddMyWebRuntime içindeki HostedService otomatik çalışır.
+    // NOT: BootstrapRunner burada manuel �agrilmiyor; AddMyWebRuntime i�indeki HostedService otomatik �alisir.
 }
 
 app.Run();

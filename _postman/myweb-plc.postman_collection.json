@@ -1,0 +1,681 @@
+{
+  "info": {
+    "name": "myweb-plc",
+    "_postman_id": "e5b1b3c0-3f0c-4f61-9f7a-aaa000000001",
+    "description": "Clean, working collection for MyWeb PLC + Historian APIs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5113"
+    }
+  ],
+  "item": [
+    {
+      "name": "Diagnostics",
+      "item": [
+        {
+          "name": "Ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/diagnostics/ping",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "diagnostics",
+                "ping"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Connect",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/diagnostics/connect",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "diagnostics",
+                "connect"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/diagnostics/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "diagnostics",
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PLC",
+      "item": [
+        {
+          "name": "Read (single)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/read?tagName=tBool",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "read"
+              ],
+              "query": [
+                {
+                  "key": "tagName",
+                  "value": "tBool"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Try-Read (single with quality)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/try-read?tagName=tBool",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "try-read"
+              ],
+              "query": [
+                {
+                  "key": "tagName",
+                  "value": "tBool"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Read-Many (batch)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/read-many?names=tBool,tByte,tWord,tLWord,tDWord,tInt,tSInt,tUInt,tULInt,tDInt,tLInt,tReal,tLReal,tString,tWString",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "read-many"
+              ],
+              "query": [
+                {
+                  "key": "names",
+                  "value": "tBool,tByte,tWord,tLWord,tDWord,tInt,tSInt,tUInt,tULInt,tDInt,tLInt,tReal,tLReal,tString,tWString"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (BOOL)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tBool\", \"value\": true}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (BYTE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tByte\", \"value\": 111}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (WORD UInt16)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tWord\", \"value\": 4660}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (INT Int16)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tInt\", \"value\": -1}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (DINT Int32)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tDInt\", \"value\": -987654321}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (UDInt/DWORD UInt32)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tDWord\", \"value\": 305419896}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (LINT Int64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tLInt\", \"value\": 12345678910}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (ULINT/LWORD UInt64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tULInt\", \"value\": 987654321}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (REAL float)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tReal\", \"value\": 12.34}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (LREAL double)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tLReal\", \"value\": -987654321.234}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (STRING cp1254)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tString\", \"value\": \"MEA\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Write (WSTRING UTF-16 BE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tagName\": \"tWString\", \"value\": \"\\u0130I\\u00e7\\u00c7\\u015f\\u015ejJ\\u011f\\u011e\\u00fc\\u00dc\\u00f6\\u00d6\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Plc/write",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Plc",
+                "write"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Projects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Project by idOrKey",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Projects/Demo.Plant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Projects",
+                "Demo.Plant"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "List Tags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Tags?projectKey=Demo.Plant&page=1&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Tags"
+              ],
+              "query": [
+                {
+                  "key": "projectKey",
+                  "value": "Demo.Plant"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Tag by Id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Tags/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Tags",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Samples",
+      "item": [
+        {
+          "name": "List Samples by tagId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Samples?tagId=1&page=1&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Samples"
+              ],
+              "query": [
+                {
+                  "key": "tagId",
+                  "value": "1"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "Projects (hist)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hist/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hist",
+                "projects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tags (hist by projectId)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hist/tags?projectId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hist",
+                "tags"
+              ],
+              "query": [
+                {
+                  "key": "projectId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Samples (hist by tagId)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hist/samples?tagId=1&take=1000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hist",
+                "samples"
+              ],
+              "query": [
+                {
+                  "key": "tagId",
+                  "value": "1"
+                },
+                {
+                  "key": "take",
+                  "value": "1000"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
