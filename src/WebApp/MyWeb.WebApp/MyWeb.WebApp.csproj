@@ -1,14 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\MyWeb.Core\MyWeb.Core.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\MyWeb.Infrastructure.Data\MyWeb.Persistence.csproj" />
     <ProjectReference Include="..\..\Modules\Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj" />
+    <ProjectReference Include="..\..\Runtime\MyWeb.Runtime\MyWeb.Runtime.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Serilog.AspNetCore" Version="8.*" />
     <PackageReference Include="Serilog.Sinks.Console" Version="5.*" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.*" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.8" />
   </ItemGroup>
 

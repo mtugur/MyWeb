@@ -1,0 +1,74 @@
+﻿{
+  "info": {
+    "_postman_id": "2f7dd0c1-aaaa-bbbb-cccc-myweb-col",
+    "name": "MyWeb API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "myweb"
+  },
+  "item": [
+    {
+      "name": "Projects — list",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/projects"
+      }
+    },
+    {
+      "name": "Projects — by id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/projects/{{projectId}}"
+      }
+    },
+    {
+      "name": "Projects — by key",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/projects/{{projectKey}}"
+      }
+    },
+    {
+      "name": "Tags — list (all)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/tags"
+      }
+    },
+    {
+      "name": "Samples — by tag (paged)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/samples?tagId={{tagId}}&page=1&pageSize=100",
+          "host": ["{{baseUrl}}"],
+          "path": ["api","samples"],
+          "query": [
+            { "key": "tagId",   "value": "{{tagId}}" },
+            { "key": "page",    "value": "1" },
+            { "key": "pageSize","value": "100" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Samples — by tag & time range",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/samples?tagId={{tagId}}&fromUtc={{fromUtc}}&toUtc={{toUtc}}&page=1&pageSize=100",
+          "host": ["{{baseUrl}}"],
+          "path": ["api","samples"],
+          "query": [
+            { "key": "tagId",   "value": "{{tagId}}" },
+            { "key": "fromUtc", "value": "{{fromUtc}}", "disabled": false },
+            { "key": "toUtc",   "value": "{{toUtc}}",   "disabled": false },
+            { "key": "page",    "value": "1" },
+            { "key": "pageSize","value": "100" }
+          ]
+        },
+        "description": "fromUtc/toUtc değerlerini environment'a geçici ekleyebilirsin. Örn: 2025-08-13T13:00:00Z"
+      }
+    }
+  ],
+  "event": []
+}

@@ -1,0 +1,17 @@
+﻿[
+  {
+    "path": "Area1/Motor1/Speed",
+    "name": "Speed",
+    "dataType": "Float",
+    "unit": "rpm",
+    "address": "DB1.DBD0",
+    "archive": { "mode": "Deadband", "deadbandAbs": 5, "rollups": ["1m","1h"] }
+  },
+  {
+    "path": "Area1/Motor1/Run",
+    "name": "Run",
+    "dataType": "Bool",
+    "address": "DB1.DBX0.0",
+    "archive": { "mode": "ChangeOnly" }
+  }
+]

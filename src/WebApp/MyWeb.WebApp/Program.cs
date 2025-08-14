@@ -1,15 +1,22 @@
 ﻿using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection; // CreateScope/GetRequiredService
 using Microsoft.Extensions.Options;
 using MyWeb.Core.Communication;
 using MyWeb.Communication.Siemens;
+using MyWeb.Persistence.Catalog;
+using MyWeb.Persistence.Historian;
 using Serilog;
+
+// Runtime extension (HostedService/Bootstrap kayıtları için)
+using MyWeb.Runtime.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// STRING (CP1254) vb. için gerekli kod sayfaları
+// --- Kod sayfaları (ör. CP1254) ---
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-// Serilog yapılandırması
+// --- Serilog ---
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
@@ -23,42 +30,63 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog(Log.Logger);
 
-// PLC bağlantı ayarlarını oku
+// --- EF Core DbContext kayıtları (tek DB, iki şema: catalog/hist) ---
+builder.Services.AddDbContext<CatalogDbContext>(opt =>
+{
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("CatalogDb"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistoryCatalog", "catalog"));
+});
+
+builder.Services.AddDbContext<HistorianDbContext>(opt =>
+{
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("HistorianDb"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistoryHist", "hist"));
+});
+
+// [Runtime] Bootstrap/Package yükleme + snapshot servisleri (HostedService)
+builder.Services.AddMyWebRuntime(builder.Configuration);
+
+// --- PLC bağlantı ayarları ---
 builder.Services.Configure<PlcConnectionSettings>(
     builder.Configuration.GetSection("PlcConnectionSettings"));
 
-// Siemens kanalını DI ile kaydet (ILogger ve IOptions ctor’a enjekte edilecek)
+// --- Siemens kanalını DI ile kaydet ---
 builder.Services.AddSingleton<ICommunicationChannel>(sp =>
 {
     var channel = new SiemensCommunicationChannel(
         sp.GetRequiredService<IOptions<PlcConnectionSettings>>(),
-        sp.GetRequiredService<ILogger<SiemensCommunicationChannel>>()
+        sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SiemensCommunicationChannel>>()
     );
 
-    // DB1000 üzerindeki tag tanımları (DB/JSON gelene kadar burada dursun)
-    channel.AddTag(new TagDefinition { Name = "tBool", Address = "DB1000.DBX0.0", DataType = "DataBlock", VarType = "Bit", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tByte", Address = "DB1000.DBB1", DataType = "DataBlock", VarType = "Byte", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tWord", Address = "DB1000.DBW2", DataType = "DataBlock", VarType = "Word", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tLWord", Address = "DB1000.DBD4", DataType = "DataBlock", VarType = "LWord", Count = 2 }); // 8B
-    channel.AddTag(new TagDefinition { Name = "tDWord", Address = "DB1000.DBD12", DataType = "DataBlock", VarType = "DWord", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tInt", Address = "DB1000.DBW16", DataType = "DataBlock", VarType = "Int", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tSInt", Address = "DB1000.DBB18", DataType = "DataBlock", VarType = "SInt", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tUInt", Address = "DB1000.DBW20", DataType = "DataBlock", VarType = "Word", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tULInt", Address = "DB1000.DBD22", DataType = "DataBlock", VarType = "ULInt", Count = 2 }); // 8B
-    channel.AddTag(new TagDefinition { Name = "tDInt", Address = "DB1000.DBD30", DataType = "DataBlock", VarType = "DInt", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tLInt", Address = "DB1000.DBD34", DataType = "DataBlock", VarType = "LInt", Count = 2 }); // 8B
-    channel.AddTag(new TagDefinition { Name = "tReal", Address = "DB1000.DBD42", DataType = "DataBlock", VarType = "Real", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tLReal", Address = "DB1000.DBD46", DataType = "DataBlock", VarType = "LReal", Count = 1 });
-    channel.AddTag(new TagDefinition { Name = "tString", Address = "DB1000.DBB54", DataType = "DataBlock", VarType = "String", Count = 20 });
-    channel.AddTag(new TagDefinition { Name = "tWString", Address = "DB1000.DBB76", DataType = "DataBlock", VarType = "WString", Count = 20 });
+    // Örnek tag’ler (DB1000)
+    //channel.AddTag(new TagDefinition { Name = "tBool", Address = "DB1000.DBX0.0", DataType = "DataBlock", VarType = "Bit", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tByte", Address = "DB1000.DBB1", DataType = "DataBlock", VarType = "Byte", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tWord", Address = "DB1000.DBW2", DataType = "DataBlock", VarType = "Word", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tLWord", Address = "DB1000.DBD4", DataType = "DataBlock", VarType = "LWord", Count = 2 });
+    //channel.AddTag(new TagDefinition { Name = "tDWord", Address = "DB1000.DBD12", DataType = "DataBlock", VarType = "DWord", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tInt", Address = "DB1000.DBW16", DataType = "DataBlock", VarType = "Int", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tSInt", Address = "DB1000.DBB18", DataType = "DataBlock", VarType = "SInt", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tUInt", Address = "DB1000.DBW20", DataType = "DataBlock", VarType = "Word", Count = 1 });
+   //channel.AddTag(new TagDefinition { Name = "tULInt", Address = "DB1000.DBD22", DataType = "DataBlock", VarType = "ULInt", Count = 2 });
+    //channel.AddTag(new TagDefinition { Name = "tDInt", Address = "DB1000.DBD30", DataType = "DataBlock", VarType = "DInt", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tLInt", Address = "DB1000.DBD34", DataType = "DataBlock", VarType = "LInt", Count = 2 });
+    //channel.AddTag(new TagDefinition { Name = "tReal", Address = "DB1000.DBD42", DataType = "DataBlock", VarType = "Real", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tLReal", Address = "DB1000.DBD46", DataType = "DataBlock", VarType = "LReal", Count = 1 });
+    //channel.AddTag(new TagDefinition { Name = "tString", Address = "DB1000.DBB54", DataType = "DataBlock", VarType = "String", Count = 20 });
+    //channel.AddTag(new TagDefinition { Name = "tWString", Address = "DB1000.DBB76", DataType = "DataBlock", VarType = "WString", Count = 20 });
 
-    // Başlangıçta bağlan
-    channel.Connect();
+    //channel.Connect();
     return channel;
 });
 
-// MVC / API
+// --- MVC / API ---
 builder.Services.AddControllersWithViews();
+
+// --- Swagger ---
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -67,9 +95,13 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-app.UseSerilogRequestLogging(); // istek logları
-
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthorization();
@@ -80,5 +112,24 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 ).WithStaticAssets();
+
+// --- EF Core otomatik migrasyon (idempotent) ---
+using (var scope = app.Services.CreateScope())
+{
+    var catalog = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    var hist = scope.ServiceProvider.GetRequiredService<HistorianDbContext>();
+
+    try
+    {
+        catalog.Database.Migrate();
+        hist.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("[EF MIGRATION ERROR] " + ex);
+    }
+
+    // NOT: BootstrapRunner burada manuel çağrılmıyor; AddMyWebRuntime içindeki HostedService otomatik çalışır.
+}
 
 app.Run();
