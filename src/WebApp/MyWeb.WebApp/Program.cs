@@ -10,7 +10,6 @@ using MyWeb.Persistence.Historian;
 using Serilog;
 
 // Runtime extension (HostedService/Bootstrap kayıtları için)
-using MyWeb.Runtime.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +46,7 @@ builder.Services.AddDbContext<HistorianDbContext>(opt =>
 });
 
 // [Runtime] Bootstrap/Package yükleme + snapshot servisleri (HostedService)
-builder.Services.AddMyWebRuntime(builder.Configuration);
+MyWeb.Runtime.ServiceCollectionExtensions.AddMyWebRuntime(builder.Services, builder.Configuration);
 
 // --- PLC bağlantı ayarları ---
 builder.Services.Configure<PlcConnectionSettings>(
