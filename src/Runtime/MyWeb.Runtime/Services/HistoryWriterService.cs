@@ -107,15 +107,57 @@ END
     }
 
     private async Task FlushOnceAsync(CancellationToken ct)
-    {
-        if (_approxCount == 0) return;
+{
+    if (_approxCount == 0) return;
 
-        var list = new List<SamplePoint>(_opts.BatchSize);
-        while (list.Count < _opts.BatchSize && _queue.TryDequeue(out var it))
-        {
-            list.Add(it);
-            Interlocked.Decrement(ref _approxCount);
-        }
+    var list = new List<SamplePoint>(_opts.BatchSize);
+    while (list.Count < _opts.BatchSize && _queue.TryDequeue(out var it))
+    {
+        list.Add(it);
+        Interlocked.Decrement(ref _approxCount);
+    }
+    if (list.Count == 0) return;
+
+    // Parametrik multi-row INSERT (VALUES ...), SQL injection'a güvenli ve hızlı
+    using var cn = new SqlConnection(_connString);
+    await cn.OpenAsync(ct);
+
+    // Komut metnini ve parametreleri hazırla
+    var sb = new System.Text.StringBuilder();
+    sb.Append("INSERT INTO [hist].[Samples] ([Utc],[Tag],[Value],[Quality]) VALUES ");
+
+    var cmd = cn.CreateCommand();
+    cmd.CommandTimeout = 30;
+
+    for (int i = 0; i < list.Count; i++)
+    {
+        if (i > 0) sb.Append(',');
+
+        string pUtc = $"@Utc{i}";
+        string pTag = $"@Tag{i}";
+        string pVal = $"@Val{i}";
+        string pQlty= $"@Qlty{i}";
+
+        sb.Append($"({pUtc},{pTag},{pVal},{pQlty})");
+
+        var row = list[i];
+
+        var parUtc = cmd.CreateParameter(); parUtc.ParameterName = pUtc; parUtc.Value = row.Utc;
+        var parTag = cmd.CreateParameter(); parTag.ParameterName = pTag; parTag.Value = (object?)row.Tag ?? DBNull.Value;
+        var parVal = cmd.CreateParameter(); parVal.ParameterName = pVal; parVal.Value = (object?)row.Value ?? DBNull.Value;
+        var parQlty= cmd.CreateParameter(); parQlty.ParameterName = pQlty; parQlty.Value = (object?)row.Quality ?? DBNull.Value;
+
+        cmd.Parameters.Add(parUtc);
+        cmd.Parameters.Add(parTag);
+        cmd.Parameters.Add(parVal);
+        cmd.Parameters.Add(parQlty);
+    }
+
+    cmd.CommandText = sb.ToString();
+    var affected = await cmd.ExecuteNonQueryAsync(ct);
+
+    _logger.LogInformation("History flush OK: wrote {Count} rows.", affected);
+}
         if (list.Count == 0) return;
 
         // DataTable -> SqlBulkCopy
@@ -155,4 +197,5 @@ public sealed class DbConnOptions
     public string CatalogDb { get; set; } = string.Empty;
     public string HistorianDb { get; set; } = string.Empty;
 }
+
 
