@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MyWeb.Core.History;
 using MyWeb.Runtime.Services;
 
 namespace MyWeb.Runtime
@@ -18,7 +17,7 @@ namespace MyWeb.Runtime
             services.Configure<HistoryOptions>(configuration.GetSection("History"));
             services.Configure<DbConnOptions>(configuration.GetSection("ConnectionStrings"));
 
-            // Hosted services (BackgroundService)
+            // Hosted services
             services.AddSingleton<PlcConnectionWatchdog>();
             services.AddHostedService(sp => sp.GetRequiredService<PlcConnectionWatchdog>());
 
@@ -28,9 +27,7 @@ namespace MyWeb.Runtime
             services.AddSingleton<HistoryWriterService>();
             services.AddHostedService(sp => sp.GetRequiredService<HistoryWriterService>());
 
-            // IHistoryWriter olarak da aynı instance'ı sun (adapter pattern)
-            services.AddSingleton<IHistoryWriter>(sp => sp.GetRequiredService<HistoryWriterService>());
-
+            // NOT: IHistoryWriter kaydı geçici olarak kaldırıldı (HistoryWriterService arayüzü uygulamıyor)
             return services;
         }
     }
