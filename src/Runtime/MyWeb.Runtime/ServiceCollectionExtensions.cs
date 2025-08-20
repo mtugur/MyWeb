@@ -1,40 +1,37 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using MyWeb.Core.Runtime.Health;
 using MyWeb.Core.History;
-using MyWeb.Runtime;
 using MyWeb.Runtime.Services;
 
-namespace MyWeb.Runtime;
-
-public static class ServiceCollectionExtensions
+namespace MyWeb.Runtime
 {
-    /// <summary>
-    /// Program.cs: builder.Services.AddMyWebRuntime(builder.Configuration);
-    /// Runtime (watchdog) + Sampling + History (queue+writer) kayıtları.
-    /// </summary>
-    public static IServiceCollection AddMyWebRuntime(this IServiceCollection services, IConfiguration configuration)
+    public static class ServiceCollectionExtensions
     {
-        // ---- Runtime (watchdog) ----
-        services.Configure<RuntimeOptions>(configuration.GetSection("Runtime"));
-        services.AddSingleton<IRuntimeHealthProvider, RuntimeHealthProvider>();
-        services.AddHostedService<PlcConnectionWatchdog>();
+        /// <summary>
+        /// Runtime bileşenlerini (Options + HostedServices) kaydeder.
+        /// </summary>
+        public static IServiceCollection AddMyWebRuntime(this IServiceCollection services, IConfiguration configuration)
+        {
+            // Options binding
+            services.Configure<RuntimeOptions>(configuration.GetSection("Runtime"));
+            services.Configure<SamplingOptions>(configuration.GetSection("Sampling"));
+            services.Configure<HistoryOptions>(configuration.GetSection("History"));
+            services.Configure<DbConnOptions>(configuration.GetSection("ConnectionStrings"));
 
-        // ---- Sampling ----
-        services.Configure<SamplingOptions>(configuration.GetSection("Sampling"));
-        services.AddHostedService<TagSamplingService>();
+            // Hosted services (BackgroundService)
+            services.AddSingleton<PlcConnectionWatchdog>();
+            services.AddHostedService(sp => sp.GetRequiredService<PlcConnectionWatchdog>());
 
-        // ---- History (queue + writer) ----
-        services.Configure<HistoryOptions>(configuration.GetSection("History"));
+            services.AddSingleton<TagSamplingService>();
+            services.AddHostedService(sp => sp.GetRequiredService<TagSamplingService>());
 
-        // ConnectionStrings -> DbConnOptions (DOĞRU: Options pattern ile)
-        services.Configure<Services.DbConnOptions>(configuration.GetSection("ConnectionStrings"));
+            services.AddSingleton<HistoryWriterService>();
+            services.AddHostedService(sp => sp.GetRequiredService<HistoryWriterService>());
 
-        // Queue + background writer
-        services.AddSingleton<IHistoryWriter, HistoryWriterService>();
-        services.AddHostedService(sp => (HistoryWriterService)sp.GetRequiredService<IHistoryWriter>());
+            // IHistoryWriter olarak da aynı instance'ı sun (adapter pattern)
+            services.AddSingleton<IHistoryWriter>(sp => sp.GetRequiredService<HistoryWriterService>());
 
-        return services;
+            return services;
+        }
     }
 }
