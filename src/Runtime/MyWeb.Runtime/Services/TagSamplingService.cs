@@ -65,7 +65,7 @@ public sealed class TagSamplingService : BackgroundService
                     // Sağlık ve kısa log
                     _health.ReportGoodSample();
                     var preview = string.Join(", ", result.Take(5).Select(kv => $"{kv.Key}={kv.Value.Value}({kv.Value.Quality})"));
-                    _logger.LogDebug("Sample OK: {Count} tags. {Preview}", result.Count, preview);
+                    _logger.LogInformation("Sample OK: {Count} tags. {Preview}", result.Count, preview);
 
                     // TODO (Step-2b): result -> SQL (Utc, Tag, Value, Quality)
                 }
@@ -104,3 +104,4 @@ public sealed class TagSamplingService : BackgroundService
 
     private static bool HasTags(string[]? arr) => arr != null && arr.Length > 0;
 }
+
