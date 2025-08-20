@@ -10,14 +10,20 @@ namespace MyWeb.Runtime;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Runtime servisleri ve Watchdog kaydı.
+    /// Runtime + Sampling servis kayıtları.
     /// Program.cs içinde: builder.Services.AddMyWebRuntime(builder.Configuration);
     /// </summary>
     public static IServiceCollection AddMyWebRuntime(this IServiceCollection services, IConfiguration configuration)
     {
+        // Runtime (watchdog) ayarları
         services.Configure<RuntimeOptions>(configuration.GetSection("Runtime"));
         services.AddSingleton<IRuntimeHealthProvider, RuntimeHealthProvider>();
-        services.AddHostedService<PlcConnectionWatchdog>(); // Step-2’de reconnect eklenecek
+        services.AddHostedService<PlcConnectionWatchdog>();
+
+        // Sampling ayarları
+        services.Configure<SamplingOptions>(configuration.GetSection("Sampling"));
+        services.AddHostedService<TagSamplingService>();
+
         return services;
     }
 }
