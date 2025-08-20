@@ -11,7 +11,7 @@ namespace MyWeb.Runtime;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Program.cs içinde: builder.Services.AddMyWebRuntime(builder.Configuration);
+    /// Program.cs: builder.Services.AddMyWebRuntime(builder.Configuration);
     /// Runtime (watchdog) + Sampling + History (queue+writer) kayıtları.
     /// </summary>
     public static IServiceCollection AddMyWebRuntime(this IServiceCollection services, IConfiguration configuration)
@@ -28,10 +28,8 @@ public static class ServiceCollectionExtensions
         // ---- History (queue + writer) ----
         services.Configure<HistoryOptions>(configuration.GetSection("History"));
 
-        // ConnectionStrings -> DbConnOptions
-        var conn = new DbConnOptions();
-        configuration.GetSection("ConnectionStrings").Bind(conn);
-        services.AddSingleton(conn);
+        // ConnectionStrings -> DbConnOptions (DOĞRU: Options pattern ile)
+        services.Configure<Services.DbConnOptions>(configuration.GetSection("ConnectionStrings"));
 
         // Queue + background writer
         services.AddSingleton<IHistoryWriter, HistoryWriterService>();
