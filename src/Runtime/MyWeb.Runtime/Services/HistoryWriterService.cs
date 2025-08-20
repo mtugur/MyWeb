@@ -18,8 +18,7 @@ namespace MyWeb.Runtime.Services
     /// - Tablo yoksa oluşturur (hist.Samples)
     /// - Parametrik çok-satırlı INSERT kullanır (SqlBulkCopy problemlerini baypas eder)
     /// </summary>
-    public sealed class HistoryWriterService : BackgroundService
-    {
+    public sealed class HistoryWriterService : BackgroundService, IHistoryWriter {
         private readonly ILogger<HistoryWriterService> _logger;
         private readonly HistoryOptions _opts;
         private readonly string _connString;
@@ -53,9 +52,19 @@ namespace MyWeb.Runtime.Services
                 _queue.Enqueue(p);
                 Interlocked.Increment(ref _approxCount);
             }
-        }
+        }    public void Enqueue(SamplePoint item)
+    {
+        if (item == null) return;
+        _queue.Enqueue(item);
+    }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public void Enqueue(IEnumerable<SamplePoint> items)
+    {
+        if (items == null) return;
+        foreach (var it in items) { if (it != null) _queue.Enqueue(it); }
+    }
+
+(CancellationToken stoppingToken)
         {
             _logger.LogInformation("HistoryWriter started. Interval={Interval}s, BatchSize={Batch}, MaxQueue={Max}",
                 _opts.WriteIntervalSeconds, _opts.BatchSize, _opts.MaxQueue);
@@ -176,3 +185,4 @@ END;";
         }
     }
 }
+
