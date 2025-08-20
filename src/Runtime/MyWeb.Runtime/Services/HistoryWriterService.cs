@@ -136,10 +136,12 @@ END
             DestinationTableName = "[hist].[Samples]",
             BulkCopyTimeout = 30
         };
-        bulk.ColumnMappings.Add("Utc", "Utc");
-        bulk.ColumnMappings.Add("Tag", "Tag");
-        bulk.ColumnMappings.Add("Value", "Value");
-        bulk.ColumnMappings.Add("Quality", "Quality");
+        bulk.ColumnMappings.Clear();
+        // Map source ordinals -> destination column names (Id is identity; we skip it)
+        bulk.ColumnMappings.Add(0, "Utc");
+        bulk.ColumnMappings.Add(1, "Tag");
+        bulk.ColumnMappings.Add(2, "Value");
+        bulk.ColumnMappings.Add(3, "Quality");
 
         await bulk.WriteToServerAsync(table, ct);
 
@@ -153,3 +155,4 @@ public sealed class DbConnOptions
     public string CatalogDb { get; set; } = string.Empty;
     public string HistorianDb { get; set; } = string.Empty;
 }
+
