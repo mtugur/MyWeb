@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MyWeb.Core.History;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,18 +23,16 @@ public sealed class TagSamplingService : BackgroundService
     private readonly ILogger<TagSamplingService> _logger;
     private readonly SamplingOptions _opts;
     private readonly IRuntimeHealthProvider _health;
-    private readonly ICommunicationChannel _channel;
+    private readonly ICommunicationChannel _channel; private readonly IHistoryWriter _history;
 
     public TagSamplingService(
         ILogger<TagSamplingService> logger,
-        IOptions<SamplingOptions> opts,
-        IRuntimeHealthProvider health,
-        ICommunicationChannel channel)
+        IOptions<SamplingOptions> opts, IRuntimeHealthProvider health, ICommunicationChannel channel, IHistoryWriter history)
     {
         _logger = logger;
         _opts = opts.Value;
         _health = health;
-        _channel = channel;
+        _channel = channel; _history = history;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -67,7 +66,15 @@ public sealed class TagSamplingService : BackgroundService
                     var preview = string.Join(", ", result.Take(5).Select(kv => $"{kv.Key}={kv.Value.Value}({kv.Value.Quality})"));
                     _logger.LogInformation("Sample OK: {Count} tags. {Preview}", result.Count, preview);
 
-                    // TODO (Step-2b): result -> SQL (Utc, Tag, Value, Quality)
+                                        // Historian kuyruğuna ekle
+                    var utc = DateTime.UtcNow;
+                    var rows = result.Select(kv => new SamplePoint {
+                        Utc = utc,
+                        Tag = kv.Key,
+                        Value = kv.Value.Value?.ToString(),
+                        Quality = kv.Value.Quality ?? "Good"
+                    });
+                    _history.Enqueue(rows);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -104,4 +111,5 @@ public sealed class TagSamplingService : BackgroundService
 
     private static bool HasTags(string[]? arr) => arr != null && arr.Length > 0;
 }
+
 
