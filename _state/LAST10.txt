@@ -1,0 +1,10 @@
+ec9c62c1308b452e72db7e1daf0a3ad5680b937d S2 ?? Step???2b: historian write path stabilized (bulk insert), sampling OK, indexes ensured
+0e541cd76da5260747d0043ab2260ec83be466a7 HistoryWriterService implements IHistoryWriter; DI maps IHistoryWriter to the hosted singleton
+3d7cfe2cf7d2269f089c8057d70d0a5bed710b1e Hotfix: remove IHistoryWriter DI mapping until HistoryWriterService implements it
+164e3ef2b1ea67c233b7718c766b7485e7dfa6f9 DI fix: bind DbConnOptions from ConnectionStrings; register hosted services; expose HistoryWriterService as IHistoryWriter
+a252c4f3d39535a3ac7687cd9409b83986586a00 Add DbConnOptions bound to ConnectionStrings for History writer
+7f4ece096bb845cbba1748a93008983523091a6b History: safe rewrite using parametrized multi-row INSERT (fix broken method body)
+ab34324662d9128fabf233cd40131de6bfc3b74e History: replace SqlBulkCopy with parametrized multi-row INSERT to avoid column mapping issues
+3fa1dc25fcfb01c7e1759003036ed65b7ad1881e Fix: SqlBulkCopy column mappings by ordinal (Utc,Tag,Value,Quality) to skip identity Id
+cef47c5afa0a30f99cb6169dd226e48ac198dfd1 Fix: bind DbConnOptions via Options pattern (uses ConnectionStrings) to fix empty connection string
+0ad521b1ab7d0384acb1f17e4aaf8c5254826060 Fix: unify namespace in SamplePoint.cs and rewrite DI to include Runtime+Sampling+History cleanly
