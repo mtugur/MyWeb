@@ -1,84 +1,69 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MyWeb.Core.History;
+using MyWeb.Runtime; // DbConnOptions & HistoryOptions burada
 
 namespace MyWeb.Runtime.Services
 {
-    /// <summary>
-    /// Örnekleri (SamplePoint) RAM kuyruğunda toplayıp belirli aralıklarla SQL Server'a yazar.
-    /// - Tablo yoksa oluşturur (hist.Samples)
-    /// - Parametrik çok-satırlı INSERT kullanır (SqlBulkCopy problemlerini baypas eder)
-    /// </summary>
-    public sealed class HistoryWriterService : BackgroundService, IHistoryWriter {
-        private readonly ILogger<HistoryWriterService> _logger;
+    public sealed class HistoryWriterService : BackgroundService, IHistoryWriter
+    {
+        private readonly ILogger<HistoryWriterService> _log;
         private readonly HistoryOptions _opts;
-        private readonly string _connString;
-
-        // RAM kuyruğu
+        private readonly DbConnOptions _db;
         private readonly ConcurrentQueue<SamplePoint> _queue = new();
-        private int _approxCount = 0;
 
         public HistoryWriterService(
-            ILogger<HistoryWriterService> logger,
+            ILogger<HistoryWriterService> log,
             IOptions<HistoryOptions> opts,
             IOptions<DbConnOptions> db)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _opts = (opts ?? throw new ArgumentNullException(nameof(opts))).Value ?? new HistoryOptions();
-            var dbo = (db ?? throw new ArgumentNullException(nameof(db))).Value ?? throw new ArgumentNullException(nameof(db.Value));
-            _connString = dbo.HistorianDb ?? throw new ArgumentNullException(nameof(dbo.HistorianDb));
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _opts = opts?.Value ?? throw new ArgumentNullException(nameof(opts));
+            _db = db?.Value ?? throw new ArgumentNullException(nameof(db));
         }
 
-        /// <summary>Sampling servisinin çağırdığı toplu enqueue.</summary>
-        public void Enqueue(IEnumerable<SamplePoint> points)
+        // IHistoryWriter
+        public void Enqueue(SamplePoint item)
         {
-            if (points == null) return;
+            if (!_opts.Enabled || item == null) return;
+            if (_queue.Count >= _opts.MaxQueue) return; // backpressure
+            _queue.Enqueue(item);
+        }
 
-            foreach (var p in points)
+        // IHistoryWriter
+        public void Enqueue(IEnumerable<SamplePoint> items)
+        {
+            if (!_opts.Enabled || items == null) return;
+            foreach (var it in items)
             {
-                // Kuyruğu sınırlı tut
-                if (_approxCount >= _opts.MaxQueue)
-                    break;
-
-                _queue.Enqueue(p);
-                Interlocked.Increment(ref _approxCount);
+                if (_queue.Count >= _opts.MaxQueue) break;
+                if (it != null) _queue.Enqueue(it);
             }
-        }    public void Enqueue(SamplePoint item)
-    {
-        if (item == null) return;
-        _queue.Enqueue(item);
-    }
+        }
 
-    public void Enqueue(IEnumerable<SamplePoint> items)
-    {
-        if (items == null) return;
-        foreach (var it in items) { if (it != null) _queue.Enqueue(it); }
-    }
-
-(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("HistoryWriter started. Interval={Interval}s, BatchSize={Batch}, MaxQueue={Max}",
+            if (!_opts.Enabled)
+            {
+                _log.LogInformation("HistoryWriter disabled; exiting.");
+                return;
+            }
+
+            _log.LogInformation(
+                "HistoryWriter started. Interval={Interval}s, BatchSize={Batch}, MaxQueue={Max}",
                 _opts.WriteIntervalSeconds, _opts.BatchSize, _opts.MaxQueue);
 
-            try
-            {
-                await EnsureSchemaAsync(stoppingToken);
-                _logger.LogInformation("History schema ensured (hist.Samples).");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "EnsureSchema failed.");
-                throw;
-            }
+            await EnsureSchemaAsync(stoppingToken);
+            _log.LogInformation("History schema ensured (hist.Samples).");
 
             var delayMs = Math.Max(250, _opts.WriteIntervalSeconds * 1000);
 
@@ -88,101 +73,87 @@ namespace MyWeb.Runtime.Services
                 {
                     await FlushOnceAsync(stoppingToken);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    break;
-                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "HistoryWriter flush error");
+                    _log.LogError(ex, "HistoryWriter flush error");
                 }
 
-                try
-                {
-                    await Task.Delay(delayMs, stoppingToken);
-                }
-                catch (TaskCanceledException) { /* shutting down */ }
+                try { await Task.Delay(delayMs, stoppingToken); }
+                catch (TaskCanceledException) { /* shutdown */ }
             }
         }
 
         private async Task EnsureSchemaAsync(CancellationToken ct)
         {
-            using var cn = new SqlConnection(_connString);
-            await cn.OpenAsync(ct);
+            using var conn = new SqlConnection(_db.HistorianDb);
+            await conn.OpenAsync(ct);
 
-            string sql = @"
-IF SCHEMA_ID(N'hist') IS NULL EXEC('CREATE SCHEMA [hist];');
-
+            const string sql = @"
+IF SCHEMA_ID(N'hist') IS NULL EXEC('CREATE SCHEMA [hist]');
 IF OBJECT_ID(N'[hist].[Samples]') IS NULL
 BEGIN
     CREATE TABLE [hist].[Samples](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_hist_Samples] PRIMARY KEY,
+        [Id] BIGINT IDENTITY(1,1) PRIMARY KEY,
         [Utc] DATETIME2(7) NOT NULL,
         [Tag] NVARCHAR(128) NOT NULL,
         [Value] NVARCHAR(MAX) NULL,
-        [Quality] NVARCHAR(32) NULL
+        [Quality] NVARCHAR(16) NOT NULL
     );
+    CREATE INDEX IX_Samples_Utc ON [hist].[Samples]([Utc]);
+    CREATE INDEX IX_Samples_Tag_Utc ON [hist].[Samples]([Tag],[Utc]);
 END;";
-
-            using var cmd = new SqlCommand(sql, cn);
-            cmd.CommandType = CommandType.Text;
+            using var cmd = new SqlCommand(sql, conn) { CommandType = CommandType.Text };
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
         private async Task FlushOnceAsync(CancellationToken ct)
         {
-            // Kuyruk boşsa çık
-            if (_approxCount == 0) return;
+            if (_queue.IsEmpty) return;
 
-            // Batch oluştur
-            var list = new List<SamplePoint>(_opts.BatchSize);
-            while (list.Count < _opts.BatchSize && _queue.TryDequeue(out var item))
+            var take = Math.Max(1, _opts.BatchSize);
+            var list = new List<SamplePoint>(take);
+            while (list.Count < take && _queue.TryDequeue(out var sp))
             {
-                list.Add(item);
-                Interlocked.Decrement(ref _approxCount);
+                if (sp != null) list.Add(sp);
             }
             if (list.Count == 0) return;
 
-            using var cn = new SqlConnection(_connString);
-            await cn.OpenAsync(ct);
+            using var conn = new SqlConnection(_db.HistorianDb);
+            await conn.OpenAsync(ct);
 
-            // Parametrik çok-satırlı INSERT
-            var sb = new StringBuilder();
-            sb.Append("INSERT INTO [hist].[Samples] ([Utc],[Tag],[Value],[Quality]) VALUES ");
-
-            using var cmd = cn.CreateCommand();
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = 30;
-
-            for (int i = 0; i < list.Count; i++)
+            // Parametreli multi-row INSERT (param sayısı limitine takılmamak için chunk)
+            int total = 0;
+            foreach (var chunk in Chunk(list, 200))
             {
-                if (i > 0) sb.Append(',');
+                using var cmd = new SqlCommand { Connection = conn };
 
-                string pUtc = $"@Utc{i}";
-                string pTag = $"@Tag{i}";
-                string pVal = $"@Val{i}";
-                string pQlt = $"@Qlt{i}";
+                var values = new List<string>(chunk.Count);
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    var row = chunk[i];
+                    string pU = $"@u{i}", pT = $"@t{i}", pV = $"@v{i}", pQ = $"@q{i}";
+                    values.Add($"({pU},{pT},{pV},{pQ})");
 
-                sb.Append($"({pUtc},{pTag},{pVal},{pQlt})");
+                    cmd.Parameters.AddWithValue(pU, row.Utc);
+                    cmd.Parameters.AddWithValue(pT, (object)row.Tag ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue(pV, (object?)row.Value ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue(pQ, (object)row.Quality ?? DBNull.Value);
+                }
 
-                var row = list[i];
-
-                var parUtc = cmd.CreateParameter(); parUtc.ParameterName = pUtc; parUtc.SqlDbType = SqlDbType.DateTime2; parUtc.Value = row.Utc;
-                var parTag = cmd.CreateParameter(); parTag.ParameterName = pTag; parTag.SqlDbType = SqlDbType.NVarChar; parTag.Size = 128; parTag.Value = (object?)row.Tag ?? DBNull.Value;
-                var parVal = cmd.CreateParameter(); parVal.ParameterName = pVal; parVal.SqlDbType = SqlDbType.NVarChar; parVal.Size = -1; parVal.Value = (object?)row.Value ?? DBNull.Value;
-                var parQlt = cmd.CreateParameter(); parQlt.ParameterName = pQlt; parQlt.SqlDbType = SqlDbType.NVarChar; parQlt.Size = 32; parQlt.Value = (object?)row.Quality ?? DBNull.Value;
-
-                cmd.Parameters.Add(parUtc);
-                cmd.Parameters.Add(parTag);
-                cmd.Parameters.Add(parVal);
-                cmd.Parameters.Add(parQlt);
+                cmd.CommandText =
+                    $"INSERT INTO [hist].[Samples]([Utc],[Tag],[Value],[Quality]) VALUES {string.Join(",", values)};";
+                total += await cmd.ExecuteNonQueryAsync(ct);
             }
 
-            cmd.CommandText = sb.ToString();
-            var affected = await cmd.ExecuteNonQueryAsync(ct);
+            // >>> Görünür log (Information) <<<
+            _log.LogInformation("History flush OK: {Count} rows", total);
+        }
 
-            _logger.LogInformation("History flush OK: wrote {Count} rows.", affected);
+        private static IEnumerable<List<T>> Chunk<T>(IReadOnlyList<T> source, int size)
+        {
+            for (int i = 0; i < source.Count; i += size)
+                yield return source.Skip(i).Take(Math.Min(size, source.Count - i)).ToList();
         }
     }
 }
-

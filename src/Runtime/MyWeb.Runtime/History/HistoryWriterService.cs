@@ -143,7 +143,8 @@ namespace MyWeb.Runtime.History
             bulk.ColumnMappings.Add("Source",       "Source");
 
             await bulk.WriteToServerAsync(table, ct);
-            _log.LogInformation("HistoryWriter: {n} örnek yazıldı (ProjectId={pid}).", table.Rows.Count, projId);
+            _log.LogDebug("HistoryWriter: {n} örnek yazıldı (ProjectId={pid}).", table.Rows.Count, projId);
+
         }
 
         private static (bool ok, double? num, string? txt, bool? b) GenerateRandom(DataType dt)

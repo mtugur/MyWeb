@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using MyWeb.Core.Runtime.Health;         // IRuntimeHealthProvider
 using MyWeb.Runtime.Services;            // RuntimeHealthProvider + diğer servisler
+using MyWeb.Core.History;
 
 namespace MyWeb.Runtime
 {
