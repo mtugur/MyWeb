@@ -1,0 +1,15 @@
+3d12fd6 S2??Step-2c: Retention (Ar??iv Temizleme) servisi eklendi ve test edildi
+25f2299 state: snapshot (git sha/branch/status, build stamp)
+ec9c62c S2 ?? Step???2b: historian write path stabilized (bulk insert), sampling OK, indexes ensured
+0e541cd HistoryWriterService implements IHistoryWriter; DI maps IHistoryWriter to the hosted singleton
+3d7cfe2 Hotfix: remove IHistoryWriter DI mapping until HistoryWriterService implements it
+164e3ef DI fix: bind DbConnOptions from ConnectionStrings; register hosted services; expose HistoryWriterService as IHistoryWriter
+a252c4f Add DbConnOptions bound to ConnectionStrings for History writer
+7f4ece0 History: safe rewrite using parametrized multi-row INSERT (fix broken method body)
+ab34324 History: replace SqlBulkCopy with parametrized multi-row INSERT to avoid column mapping issues
+3fa1dc2 Fix: SqlBulkCopy column mappings by ordinal (Utc,Tag,Value,Quality) to skip identity Id
+cef47c5 Fix: bind DbConnOptions via Options pattern (uses ConnectionStrings) to fix empty connection string
+0ad521b Fix: unify namespace in SamplePoint.cs and rewrite DI to include Runtime+Sampling+History cleanly
+afec4bc S2 Step-2b: History writer (queue+bulk to SQL) and sampling integration
+20fec3d Log: Sample OK at Information level for visibility
+77ba740 Sampling: use sync Connect + ReadTagsWithQuality from Siemens channel

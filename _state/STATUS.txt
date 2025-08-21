@@ -1,5 +1,6 @@
 ## feat/runtime-watchdog...origin/feat/runtime-watchdog
-?? _state/GIT_BRANCH.txt
-?? _state/GIT_SHA.txt
-?? _state/LAST10.txt
-?? _state/STATUS.txt
+ M _state/GIT_SHA.txt
+ M _state/STATUS.txt
+ M src/WebApp/MyWeb.WebApp/appsettings.Development.json
+ M src/WebApp/MyWeb.WebApp/appsettings.json
+?? _state/LAST15.txt
