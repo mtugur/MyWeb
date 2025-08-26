@@ -1,29 +1,5 @@
-﻿# .NET
-bin/
-obj/
-**/bin/
-**/obj/
-*.user
-*.suo
-*.userosscache
-*.userprefs
 
-# Build çıkışları
-*.log
-Logs/
-*.nupkg
-*.snupkg
-
-# Rider / VS Code / VS
-.idea/
-.vscode/
-.vs/
-
-# Paketler ve yerel dosyalar
+_state/
 _packages/*.zip
 _packages/*.mywebpkg
-_postman/**/generated/*
-!/ _postman/*.json
 
-# Secret'lar (eğer kullanırsan)
-**/secrets.json
