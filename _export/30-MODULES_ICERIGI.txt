@@ -1,0 +1,1594 @@
+﻿30-MODULES_ICERIGI.txt - 2025-08-29 12:33:42
+------------------------------------------------------------
+Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Modules
+
+
+--- KLASOR AGACI ---
+
+Folder PATH listing
+Volume serial number is 000000EC EAE4:C23B
+C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\MODULES
+\---Communication.Siemens
+    \---MyWeb.Communication.Siemens
+        |   Class1.cs
+        |   MyWeb.Communication.Siemens.csproj
+        |   PlcConnectionSettings.cs
+        |   S7StringEncoding.cs
+        |   SiemensCommunicationChannel.cs
+        |   
+        +---bin
+        |   \---Debug
+        |       \---net9.0
+        |               MyWeb.Communication.Siemens.deps.json
+        |               MyWeb.Communication.Siemens.dll
+        |               MyWeb.Communication.Siemens.pdb
+        |               MyWeb.Core.dll
+        |               MyWeb.Core.pdb
+        |               
+        \---obj
+            |   MyWeb.Communication.Siemens.csproj.nuget.dgspec.json
+            |   MyWeb.Communication.Siemens.csproj.nuget.g.props
+            |   MyWeb.Communication.Siemens.csproj.nuget.g.targets
+            |   project.assets.json
+            |   project.nuget.cache
+            |   
+            \---Debug
+                \---net9.0
+                    |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+                    |   MyWeb.Co.536DCC15.Up2Date
+                    |   MyWeb.Communication.Siemens.AssemblyInfo.cs
+                    |   MyWeb.Communication.Siemens.AssemblyInfoInputs.cache
+                    |   MyWeb.Communication.Siemens.assets.cache
+                    |   MyWeb.Communication.Siemens.csproj.AssemblyReference.cache
+                    |   MyWeb.Communication.Siemens.csproj.CoreCompileInputs.cache
+                    |   MyWeb.Communication.Siemens.csproj.FileListAbsolute.txt
+                    |   MyWeb.Communication.Siemens.dll
+                    |   MyWeb.Communication.Siemens.GeneratedMSBuildEditorConfig.editorconfig
+                    |   MyWeb.Communication.Siemens.GlobalUsings.g.cs
+                    |   MyWeb.Communication.Siemens.pdb
+                    |   MyWeb.Communication.Siemens.sourcelink.json
+                    |   
+                    +---ref
+                    |       MyWeb.Communication.Siemens.dll
+                    |       
+                    \---refint
+                            MyWeb.Communication.Siemens.dll
+                            
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj
+==================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\MyWeb.Core\MyWeb.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.*" />
+    <PackageReference Include="S7netplus" Version="0.20.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\bin\Debug\net9.0\MyWeb.Communication.Siemens.deps.json
+==================================================
+
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "MyWeb.Communication.Siemens/1.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
+          "Microsoft.Extensions.Options": "8.0.2",
+          "MyWeb.Core": "1.0.0",
+          "S7netplus": "0.20.0"
+        },
+        "runtime": {
+          "MyWeb.Communication.Siemens.dll": {}
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.1024.46610"
+          }
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.1325.6609"
+          }
+        }
+      },
+      "Microsoft.Extensions.Options/8.0.2": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Options.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.224.6711"
+          }
+        }
+      },
+      "Microsoft.Extensions.Primitives/8.0.0": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Primitives.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "S7netplus/0.20.0": {
+        "runtime": {
+          "lib/net7.0/S7.Net.dll": {
+            "assemblyVersion": "0.20.0.0",
+            "fileVersion": "0.20.0.0"
+          }
+        }
+      },
+      "MyWeb.Core/1.0.0": {
+        "runtime": {
+          "MyWeb.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MyWeb.Communication.Siemens/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3iE7UF7MQkCv1cxzCahz+Y/guQbTqieyxyaWKhrRO91itI9cOKO76OHeQDahqG4MmW5umr3CcCvGmK92lWNlbg==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.2",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dL0QGToTxggRLMYY4ZYX5AMwBb+byQBd/5dMiZE07Nv73o6I5Are3C7eQTh7K2+A4ct0PVISSr7TZANbiNb2yQ==",
+      "path": "microsoft.extensions.logging.abstractions/8.0.3",
+      "hashPath": "microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Options/8.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dWGKvhFybsaZpGmzkGCbNNwBD1rVlWzrZKANLW/CcbFJpCEceMCGzT7zZwHOGBCbwM0SzBuceMj5HN1LKV1QqA==",
+      "path": "microsoft.extensions.options/8.0.2",
+      "hashPath": "microsoft.extensions.options.8.0.2.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Primitives/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bXJEZrW9ny8vjMF1JV253WeLhpEVzFo1lyaZu1vQ4ZxWUlVvknZ/+ftFgVheLubb4eZPSwwxBeqS1JkCOjxd8g==",
+      "path": "microsoft.extensions.primitives/8.0.0",
+      "hashPath": "microsoft.extensions.primitives.8.0.0.nupkg.sha512"
+    },
+    "S7netplus/0.20.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-XAubZ076bhWHQZlnBkzwQO4WxqF5ofwhrkDxfBhGbeD1JC1jBDn3EbWIqMLW6+G0RsxzxirSjLERCQZPfjwGdw==",
+      "path": "s7netplus/0.20.0",
+      "hashPath": "s7netplus.0.20.0.nupkg.sha512"
+    },
+    "MyWeb.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\Class1.cs
+==================================================
+
+namespace MyWeb.Communication.Siemens;
+
+public class Class1
+{
+
+}
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj
+==================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\MyWeb.Core\MyWeb.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.*" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.*" />
+    <PackageReference Include="S7netplus" Version="0.20.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\obj\Debug\net9.0\.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+==================================================
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v9.0", FrameworkDisplayName = ".NET 9.0")]
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\obj\Debug\net9.0\MyWeb.Communication.Siemens.AssemblyInfo.cs
+==================================================
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("MyWeb.Communication.Siemens")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4b1fdbd130d92cc982d3d9eb8ff5d2499b9caa00")]
+[assembly: System.Reflection.AssemblyProductAttribute("MyWeb.Communication.Siemens")]
+[assembly: System.Reflection.AssemblyTitleAttribute("MyWeb.Communication.Siemens")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\obj\Debug\net9.0\MyWeb.Communication.Siemens.GlobalUsings.g.cs
+==================================================
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\obj\Debug\net9.0\MyWeb.Communication.Siemens.sourcelink.json
+==================================================
+
+{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/4b1fdbd130d92cc982d3d9eb8ff5d2499b9caa00/*"}}
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\obj\MyWeb.Communication.Siemens.csproj.nuget.dgspec.json
+==================================================
+
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\MyWeb.Communication.Siemens.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj",
+        "projectName": "MyWeb.Core",
+        "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\MyWeb.Communication.Siemens.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\MyWeb.Communication.Siemens.csproj",
+        "projectName": "MyWeb.Communication.Siemens",
+        "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\MyWeb.Communication.Siemens.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj": {
+                "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[8.*, )"
+            },
+            "Microsoft.Extensions.Options": {
+              "target": "Package",
+              "version": "[8.*, )"
+            },
+            "S7netplus": {
+              "target": "Package",
+              "version": "[0.20.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\obj\project.assets.json
+==================================================
+
+{
+  "version": 3,
+  "targets": {
+    "net9.0": {
+      "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/Microsoft.Extensions.Logging.Abstractions.targets": {}
+        }
+      },
+      "Microsoft.Extensions.Options/8.0.2": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.Options.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Options.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/Microsoft.Extensions.Options.targets": {}
+        }
+      },
+      "Microsoft.Extensions.Primitives/8.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.Primitives.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Primitives.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        }
+      },
+      "S7netplus/0.20.0": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/S7.Net.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/S7.Net.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MyWeb.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/MyWeb.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/MyWeb.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+      "sha512": "3iE7UF7MQkCv1cxzCahz+Y/guQbTqieyxyaWKhrRO91itI9cOKO76OHeQDahqG4MmW5umr3CcCvGmK92lWNlbg==",
+      "type": "package",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.DependencyInjection.Abstractions.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.DependencyInjection.Abstractions.targets",
+        "lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+        "microsoft.extensions.dependencyinjection.abstractions.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "Microsoft.Extensions.Logging.Abstractions/8.0.3": {
+      "sha512": "dL0QGToTxggRLMYY4ZYX5AMwBb+byQBd/5dMiZE07Nv73o6I5Are3C7eQTh7K2+A4ct0PVISSr7TZANbiNb2yQ==",
+      "type": "package",
+      "path": "microsoft.extensions.logging.abstractions/8.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "analyzers/dotnet/roslyn3.11/cs/Microsoft.Extensions.Logging.Generators.dll",
+        "analyzers/dotnet/roslyn3.11/cs/cs/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/de/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/es/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/fr/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/it/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/ja/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/ko/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/pl/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/pt-BR/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/ru/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/tr/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/zh-Hans/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn3.11/cs/zh-Hant/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/Microsoft.Extensions.Logging.Generators.dll",
+        "analyzers/dotnet/roslyn4.0/cs/cs/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/de/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/es/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/fr/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/it/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/ja/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/ko/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/pl/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/pt-BR/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/ru/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/tr/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/zh-Hans/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.0/cs/zh-Hant/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll",
+        "analyzers/dotnet/roslyn4.4/cs/cs/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/de/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/es/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/fr/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/it/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/ja/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/ko/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/pl/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/pt-BR/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/ru/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/tr/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/zh-Hans/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/zh-Hant/Microsoft.Extensions.Logging.Generators.resources.dll",
+        "buildTransitive/net461/Microsoft.Extensions.Logging.Abstractions.targets",
+        "buildTransitive/net462/Microsoft.Extensions.Logging.Abstractions.targets",
+        "buildTransitive/net6.0/Microsoft.Extensions.Logging.Abstractions.targets",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Logging.Abstractions.targets",
+        "buildTransitive/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.targets",
+        "lib/net462/Microsoft.Extensions.Logging.Abstractions.dll",
+        "lib/net462/Microsoft.Extensions.Logging.Abstractions.xml",
+        "lib/net6.0/Microsoft.Extensions.Logging.Abstractions.dll",
+        "lib/net6.0/Microsoft.Extensions.Logging.Abstractions.xml",
+        "lib/net7.0/Microsoft.Extensions.Logging.Abstractions.dll",
+        "lib/net7.0/Microsoft.Extensions.Logging.Abstractions.xml",
+        "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll",
+        "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.xml",
+        "microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
+        "microsoft.extensions.logging.abstractions.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "Microsoft.Extensions.Options/8.0.2": {
+      "sha512": "dWGKvhFybsaZpGmzkGCbNNwBD1rVlWzrZKANLW/CcbFJpCEceMCGzT7zZwHOGBCbwM0SzBuceMj5HN1LKV1QqA==",
+      "type": "package",
+      "path": "microsoft.extensions.options/8.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll",
+        "analyzers/dotnet/roslyn4.4/cs/cs/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/de/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/es/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/fr/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/it/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/ja/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/ko/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/pl/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/pt-BR/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/ru/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/tr/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/zh-Hans/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "analyzers/dotnet/roslyn4.4/cs/zh-Hant/Microsoft.Extensions.Options.SourceGeneration.resources.dll",
+        "buildTransitive/net461/Microsoft.Extensions.Options.targets",
+        "buildTransitive/net462/Microsoft.Extensions.Options.targets",
+        "buildTransitive/net6.0/Microsoft.Extensions.Options.targets",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Options.targets",
+        "buildTransitive/netstandard2.0/Microsoft.Extensions.Options.targets",
+        "lib/net462/Microsoft.Extensions.Options.dll",
+        "lib/net462/Microsoft.Extensions.Options.xml",
+        "lib/net6.0/Microsoft.Extensions.Options.dll",
+        "lib/net6.0/Microsoft.Extensions.Options.xml",
+        "lib/net7.0/Microsoft.Extensions.Options.dll",
+        "lib/net7.0/Microsoft.Extensions.Options.xml",
+        "lib/net8.0/Microsoft.Extensions.Options.dll",
+        "lib/net8.0/Microsoft.Extensions.Options.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Options.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Options.xml",
+        "lib/netstandard2.1/Microsoft.Extensions.Options.dll",
+        "lib/netstandard2.1/Microsoft.Extensions.Options.xml",
+        "microsoft.extensions.options.8.0.2.nupkg.sha512",
+        "microsoft.extensions.options.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "Microsoft.Extensions.Primitives/8.0.0": {
+      "sha512": "bXJEZrW9ny8vjMF1JV253WeLhpEVzFo1lyaZu1vQ4ZxWUlVvknZ/+ftFgVheLubb4eZPSwwxBeqS1JkCOjxd8g==",
+      "type": "package",
+      "path": "microsoft.extensions.primitives/8.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.Primitives.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Primitives.targets",
+        "lib/net462/Microsoft.Extensions.Primitives.dll",
+        "lib/net462/Microsoft.Extensions.Primitives.xml",
+        "lib/net6.0/Microsoft.Extensions.Primitives.dll",
+        "lib/net6.0/Microsoft.Extensions.Primitives.xml",
+        "lib/net7.0/Microsoft.Extensions.Primitives.dll",
+        "lib/net7.0/Microsoft.Extensions.Primitives.xml",
+        "lib/net8.0/Microsoft.Extensions.Primitives.dll",
+        "lib/net8.0/Microsoft.Extensions.Primitives.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Primitives.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Primitives.xml",
+        "microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+        "microsoft.extensions.primitives.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "S7netplus/0.20.0": {
+      "sha512": "XAubZ076bhWHQZlnBkzwQO4WxqF5ofwhrkDxfBhGbeD1JC1jBDn3EbWIqMLW6+G0RsxzxirSjLERCQZPfjwGdw==",
+      "type": "package",
+      "path": "s7netplus/0.20.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net452/S7.Net.dll",
+        "lib/net452/S7.Net.xml",
+        "lib/net462/S7.Net.dll",
+        "lib/net462/S7.Net.xml",
+        "lib/net5.0/S7.Net.dll",
+        "lib/net5.0/S7.Net.xml",
+        "lib/net6.0/S7.Net.dll",
+        "lib/net6.0/S7.Net.xml",
+        "lib/net7.0/S7.Net.dll",
+        "lib/net7.0/S7.Net.xml",
+        "lib/netstandard1.3/S7.Net.dll",
+        "lib/netstandard1.3/S7.Net.xml",
+        "lib/netstandard2.0/S7.Net.dll",
+        "lib/netstandard2.0/S7.Net.xml",
+        "s7netplus.0.20.0.nupkg.sha512",
+        "s7netplus.nuspec"
+      ]
+    },
+    "MyWeb.Core/1.0.0": {
+      "type": "project",
+      "path": "../../../Core/MyWeb.Core/MyWeb.Core.csproj",
+      "msbuildProject": "../../../Core/MyWeb.Core/MyWeb.Core.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net9.0": [
+      "Microsoft.Extensions.Logging.Abstractions >= 8.*",
+      "Microsoft.Extensions.Options >= 8.*",
+      "MyWeb.Core >= 1.0.0",
+      "S7netplus >= 0.20.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\User\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\MyWeb.Communication.Siemens.csproj",
+      "projectName": "MyWeb.Communication.Siemens",
+      "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\MyWeb.Communication.Siemens.csproj",
+      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Modules\\Communication.Siemens\\MyWeb.Communication.Siemens\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net9.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "projectReferences": {
+            "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj": {
+              "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
+    },
+    "frameworks": {
+      "net9.0": {
+        "targetAlias": "net9.0",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": {
+            "target": "Package",
+            "version": "[8.*, )"
+          },
+          "Microsoft.Extensions.Options": {
+            "target": "Package",
+            "version": "[8.*, )"
+          },
+          "S7netplus": {
+            "target": "Package",
+            "version": "[0.20.0, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\PlcConnectionSettings.cs
+==================================================
+
+using S7.Net;
+
+namespace MyWeb.Communication.Siemens
+{
+    /// <summary>
+    /// appsettings.json’dan okunacak PLC bağlantı ayarları.
+    /// </summary>
+    public class PlcConnectionSettings
+    {
+        public CpuType CpuType { get; set; }
+        public string IP { get; set; } = string.Empty;
+        public short Rack { get; set; }
+        public short Slot { get; set; }
+    }
+}
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\S7StringEncoding.cs
+==================================================
+
+using System;
+using System.Linq;
+using System.Text;
+
+namespace MyWeb.Communication.Siemens
+{
+    /// <summary>
+    /// Siemens S7 STRING / WSTRING kodlama/çözme yardımcıları.
+    /// STRING: [0]=MaxLen, [1]=CurLen, payload (CP1254)
+    /// WSTRING: [0..1]=MaxChars, [2..3]=CurChars (BE), payload = UTF-16BE
+    /// </summary>
+    internal static class S7StringEncoding
+    {
+        private static readonly Encoding Cp1254 = Encoding.GetEncoding(1254); // Program.cs'de RegisterProvider çağrılı.
+
+        public static string DecodeString(byte[] buffer, int maxLen)
+        {
+            if (buffer == null || buffer.Length < 2) return string.Empty;
+            int cur = Math.Min(buffer[1], maxLen);
+            if (cur <= 0) return string.Empty;
+            return Cp1254.GetString(buffer, 2, Math.Min(cur, buffer.Length - 2));
+        }
+
+        public static byte[] EncodeString(string s, int maxLen)
+        {
+            if (s == null) s = string.Empty;
+            var payload = Cp1254.GetBytes(s);
+            int cur = Math.Min(payload.Length, maxLen);
+            var buf = new byte[maxLen + 2];
+            buf[0] = (byte)maxLen;
+            buf[1] = (byte)cur;
+            Array.Copy(payload, 0, buf, 2, cur);
+            return buf;
+        }
+
+        public static string DecodeWString(byte[] buffer, int maxChars)
+        {
+            if (buffer == null || buffer.Length < 4) return string.Empty;
+
+            // Header BE: [0..1]=MaxChars, [2..3]=CurChars
+            ushort cur = ReadUInt16BE(buffer, 2);
+            int charCount = Math.Min(cur, (ushort)maxChars);
+            int bytesNeeded = charCount * 2;
+
+            if (buffer.Length < 4 + bytesNeeded) return string.Empty;
+
+            var data = new byte[bytesNeeded];
+            Array.Copy(buffer, 4, data, 0, bytesNeeded);
+
+            // UTF-16 BE
+            return Encoding.BigEndianUnicode.GetString(data);
+        }
+
+        public static byte[] EncodeWString(string s, int maxChars)
+        {
+            if (s == null) s = string.Empty;
+
+            // S7-1500 WSTRING: UTF-16BE
+            var bytes = Encoding.BigEndianUnicode.GetBytes(s);
+            // bytes.Length = chars*2
+            int maxBytes = maxChars * 2;
+            int curBytes = Math.Min(bytes.Length, maxBytes);
+            ushort curChars = (ushort)(curBytes / 2);
+
+            var buf = new byte[4 + maxBytes];
+            WriteUInt16BE(buf, 0, (ushort)maxChars);
+            WriteUInt16BE(buf, 2, curChars);
+            Array.Copy(bytes, 0, buf, 4, curBytes);
+            return buf;
+        }
+
+        private static ushort ReadUInt16BE(byte[] b, int offset)
+        {
+            return (ushort)((b[offset] << 8) | b[offset + 1]);
+        }
+
+        private static void WriteUInt16BE(byte[] b, int offset, ushort value)
+        {
+            b[offset] = (byte)(value >> 8);
+            b[offset + 1] = (byte)(value & 0xFF);
+        }
+    }
+}
+
+
+==================================================
+Dosya: src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\SiemensCommunicationChannel.cs
+==================================================
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MyWeb.Core.Communication;
+using S7.Net;
+using S7.Net.Types;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+
+namespace MyWeb.Communication.Siemens
+{
+    /// <summary>
+    /// Siemens S7-1200/1500 için S7.NetPlus tabanlı haberleşme kanalı.
+    /// - Bool/Byte/SInt/Word/Int/DWord/UDInt/DInt/LWord/ULInt/LInt/Real/LReal/STRING/WSTRING desteği
+    /// - STRING: CP1254, WSTRING: UTF-16 BE
+    /// - Toplu okuma: uygun tipler (Bit/Byte/Word/Int/DWord/DInt/UDInt) ReadMultipleVars ile batch
+    /// - Sağlık bilgisi, uptime, reconnect sayaçları, loglama
+    /// </summary>
+    public class SiemensCommunicationChannel : ICommunicationChannel
+    {
+        private readonly Plc _plc;
+        private readonly ILogger<SiemensCommunicationChannel> _log;
+        private readonly Dictionary<string, TagDefinition> _tags = new(StringComparer.OrdinalIgnoreCase);
+
+        // Sağlık/sayaç alanları
+        private DateTimeOffset _lastOkUtc = DateTimeOffset.MinValue;
+        private string? _lastErrorMessage;
+        private bool _everConnected = false;
+        private DateTimeOffset? _startUtc = null;
+        private long _reconnectCount = 0;
+        private DateTimeOffset? _lastReconnectUtc = null;
+
+        public SiemensCommunicationChannel(IOptions<PlcConnectionSettings> options,
+                                           ILogger<SiemensCommunicationChannel> logger)
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            var settings = options.Value ?? throw new ArgumentNullException(nameof(options.Value));
+
+            _plc = new Plc(settings.CpuType, settings.IP, settings.Rack, settings.Slot);
+            _log = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _log.LogInformation("SiemensChannel created. CPU={Cpu} IP={IP} Rack={Rack} Slot={Slot}",
+                settings.CpuType, settings.IP, settings.Rack, settings.Slot);
+        }
+
+        public bool Connect()
+        {
+            try
+            {
+                if (_plc.IsConnected)
+                {
+                    _log.LogDebug("Connect() skipped; already connected.");
+                    return true;
+                }
+
+                bool firstConnect = !_everConnected;
+
+                _log.LogInformation("Connecting to PLC...");
+                _plc.Open();
+
+                if (_plc.IsConnected)
+                {
+                    MarkOk();
+
+                    if (firstConnect)
+                    {
+                        _everConnected = true;
+                        _startUtc = _lastOkUtc;
+                        _log.LogInformation("Connected (first). StartUtc={StartUtc}", _startUtc);
+                    }
+                    else
+                    {
+                        _reconnectCount++;
+                        _lastReconnectUtc = DateTimeOffset.UtcNow;
+                        _log.LogWarning("Reconnected. ReconnectCount={Count} LastReconnect={Last}",
+                            _reconnectCount, _lastReconnectUtc);
+                    }
+                }
+                return _plc.IsConnected;
+            }
+            catch (Exception ex)
+            {
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "Connect() failed: {Msg}", ex.Message);
+                return false;
+            }
+        }
+
+        public void Disconnect()
+        {
+            try
+            {
+                if (_plc.IsConnected)
+                {
+                    _plc.Close();
+                    _log.LogInformation("Disconnected from PLC.");
+                }
+                _lastErrorMessage = null;
+            }
+            catch (Exception ex)
+            {
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "Disconnect() error: {Msg}", ex.Message);
+            }
+        }
+
+        public bool IsConnected => _plc?.IsConnected ?? false;
+
+        public void AddTag(TagDefinition tag)
+        {
+            if (tag == null) throw new ArgumentNullException(nameof(tag));
+            _tags[tag.Name] = tag;
+            _log.LogDebug("Tag added: {Name} -> {Addr} ({VarType})", tag.Name, tag.Address, tag.VarType);
+        }
+
+        public bool RemoveTag(string tagName)
+        {
+            bool removed = _tags.Remove(tagName);
+            if (removed) _log.LogDebug("Tag removed: {Name}", tagName);
+            return removed;
+        }
+
+        public T ReadTag<T>(string tagName)
+        {
+            if (!_tags.TryGetValue(tagName, out var tag))
+                throw new KeyNotFoundException($"Tag '{tagName}' bulunamadı.");
+
+            EnsureConnected();
+
+            try
+            {
+                string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                ParseDbAddress(tag.Address, out var dt, out var db, out var start, out var bit);
+
+                if (vt == "wstring")
+                {
+                    int total = 4 + tag.Count * 2;
+                    var buf = _plc.ReadBytes(dt, db, start, total);
+                    string s = S7StringEncoding.DecodeWString(buf, tag.Count);
+                    MarkOk();
+                    return (T)(object)s!;
+                }
+                if (vt == "string")
+                {
+                    int total = 2 + tag.Count;
+                    var buf = _plc.ReadBytes(dt, db, start, total);
+                    string s = S7StringEncoding.DecodeString(buf, tag.Count);
+                    MarkOk();
+                    return (T)(object)s!;
+                }
+                if (vt == "real" && tag.Count == 1)
+                {
+                    var b = _plc.ReadBytes(dt, db, start, 4);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    float f = BitConverter.ToSingle(b, 0);
+                    MarkOk();
+                    return (T)(object)f!;
+                }
+                if (vt == "lreal" && tag.Count == 1)
+                {
+                    var b = _plc.ReadBytes(dt, db, start, 8);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    double d = BitConverter.ToDouble(b, 0);
+                    MarkOk();
+                    return (T)(object)d!;
+                }
+                if ((vt == "lword" || vt == "ulint" || vt == "lint") && tag.Count == 2)
+                {
+                    var b = _plc.ReadBytes(dt, db, start, 8);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    object v = (vt == "lint") ? BitConverter.ToInt64(b, 0) : BitConverter.ToUInt64(b, 0);
+                    MarkOk();
+                    return (T)Convert.ChangeType(v, typeof(T));
+                }
+
+                object raw = _plc.Read(tag.Address)!;
+                object val = NormalizePrimitive(vt, raw);
+                MarkOk();
+                return (T)Convert.ChangeType(val, typeof(T));
+            }
+            catch (Exception ex)
+            {
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "ReadTag failed. Tag={Tag} Err={Msg}", tagName, ex.Message);
+                throw;
+            }
+        }
+
+        public Dictionary<string, object> ReadTags(IEnumerable<string> tagNames)
+        {
+            EnsureConnected();
+
+            var names = tagNames?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? new List<string>();
+            var result = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            var batchables = new List<(string name, TagDefinition tag, DataItem item)>();
+            var nonBatchNames = new List<string>();
+
+            foreach (var name in names)
+            {
+                if (!_tags.TryGetValue(name, out var tag))
+                {
+                    result[name] = null!;
+                    continue;
+                }
+                if (TryBuildDataItem(tag, out var di))
+                    batchables.Add((name, tag, di));
+                else
+                    nonBatchNames.Add(name);
+            }
+
+            if (batchables.Count > 0)
+            {
+                try
+                {
+                    var items = batchables.Select(b => b.item).ToList();
+                    _plc.ReadMultipleVars(items);
+                    for (int i = 0; i < batchables.Count; i++)
+                    {
+                        var (name, tag, item) = batchables[i];
+                        string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                        result[name] = NormalizePrimitive(vt, item.Value!);
+                    }
+                    MarkOk();
+                }
+                catch (Exception ex)
+                {
+                    _lastErrorMessage = ex.Message;
+                    _log.LogWarning(ex, "Batch read failed. Fallback to single reads.");
+                    foreach (var (name, _, _) in batchables)
+                    {
+                        try { result[name] = ReadTag<object>(name)!; }
+                        catch { result[name] = null!; }
+                    }
+                }
+            }
+
+            foreach (var name in nonBatchNames)
+            {
+                try { result[name] = ReadTag<object>(name)!; }
+                catch { result[name] = null!; }
+            }
+
+            return result;
+        }
+
+        public Dictionary<string, TagValue> ReadTagsWithQuality(IEnumerable<string> tagNames)
+        {
+            EnsureConnected();
+
+            var names = tagNames?.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? new List<string>();
+            var result = new Dictionary<string, TagValue>(StringComparer.OrdinalIgnoreCase);
+
+            var batchables = new List<(string name, TagDefinition tag, DataItem item)>();
+            var nonBatchNames = new List<string>();
+
+            foreach (var name in names)
+            {
+                if (!_tags.TryGetValue(name, out var tag))
+                {
+                    result[name] = new TagValue { Value = null, Quality = "Bad", TimestampUtc = DateTimeOffset.UtcNow };
+                    continue;
+                }
+                if (TryBuildDataItem(tag, out var di))
+                    batchables.Add((name, tag, di));
+                else
+                    nonBatchNames.Add(name);
+            }
+
+            if (batchables.Count > 0)
+            {
+                try
+                {
+                    var items = batchables.Select(b => b.item).ToList();
+                    _plc.ReadMultipleVars(items);
+
+                    for (int i = 0; i < batchables.Count; i++)
+                    {
+                        var (name, tag, item) = batchables[i];
+                        string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                        result[name] = new TagValue
+                        {
+                            Value = NormalizePrimitive(vt, item.Value!),
+                            Quality = "Good",
+                            TimestampUtc = DateTimeOffset.UtcNow
+                        };
+                    }
+                    MarkOk();
+                }
+                catch (Exception ex)
+                {
+                    _lastErrorMessage = ex.Message;
+                    _log.LogWarning(ex, "Batch read (quality) failed. Fallback to single reads.");
+                    foreach (var (name, _, _) in batchables)
+                    {
+                        try
+                        {
+                            result[name] = new TagValue
+                            {
+                                Value = ReadTag<object>(name),
+                                Quality = "Good",
+                                TimestampUtc = DateTimeOffset.UtcNow
+                            };
+                        }
+                        catch
+                        {
+                            result[name] = new TagValue { Value = null, Quality = "Bad", TimestampUtc = DateTimeOffset.UtcNow };
+                        }
+                    }
+                }
+            }
+
+            foreach (var name in nonBatchNames)
+            {
+                try
+                {
+                    result[name] = new TagValue
+                    {
+                        Value = ReadTag<object>(name),
+                        Quality = "Good",
+                        TimestampUtc = DateTimeOffset.UtcNow
+                    };
+                }
+                catch
+                {
+                    result[name] = new TagValue { Value = null, Quality = "Bad", TimestampUtc = DateTimeOffset.UtcNow };
+                }
+            }
+
+            return result;
+        }
+
+        public bool WriteTag(string tagName, object value)
+        {
+            if (!_tags.TryGetValue(tagName, out var tag))
+                throw new KeyNotFoundException($"Tag '{tagName}' bulunamadı.");
+
+            EnsureConnected();
+
+            try
+            {
+                string vt = tag.VarType?.ToLowerInvariant() ?? "";
+                ParseDbAddress(tag.Address, out var dt, out var db, out var start, out var bit);
+
+                object actual = value;
+                if (value is JsonElement je)
+                {
+                    actual = vt switch
+                    {
+                        "bit" => je.GetBoolean(),
+                        "byte" => je.GetByte(),
+                        "sint" => (sbyte)je.GetInt32(),
+                        "word" => je.GetInt32(),
+                        "int" => je.GetInt32(),
+                        "dword" => je.GetUInt32(),
+                        "udint" => je.GetUInt32(),
+                        "dint" => je.GetInt32(),
+                        "real" => (float)je.GetDouble(),
+                        "lreal" => je.GetDouble(),
+                        "string" => je.GetString() ?? string.Empty,
+                        "ulint" => je.GetUInt64(),
+                        "lword" => je.GetUInt64(),
+                        "lint" => je.GetInt64(),
+                        "wstring" => je.GetString() ?? string.Empty,
+                        _ => throw new NotSupportedException($"VarType '{tag.VarType}' bilinmiyor.")
+                    };
+                }
+
+                if (vt == "wstring" && actual is string ws)
+                {
+                    var buf = S7StringEncoding.EncodeWString(ws, tag.Count);
+                    _plc.WriteBytes(dt, db, start, buf);
+                    MarkOk();
+                    _log.LogDebug("WSTRING write OK: {Name}", tagName);
+                    return true;
+                }
+
+                if (vt == "string" && actual is string s)
+                {
+                    var buf = S7StringEncoding.EncodeString(s, tag.Count);
+                    _plc.WriteBytes(dt, db, start, buf);
+                    MarkOk();
+                    _log.LogDebug("STRING write OK: {Name}", tagName);
+                    return true;
+                }
+
+                if (vt == "real" && actual is IConvertible)
+                {
+                    float f = Convert.ToSingle(actual);
+                    var b = BitConverter.GetBytes(f);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    _plc.WriteBytes(dt, db, start, b);
+                    MarkOk();
+                    _log.LogDebug("REAL write OK: {Name}={Val}", tagName, f);
+                    return true;
+                }
+
+                if (vt == "lreal" && actual is IConvertible)
+                {
+                    double d = Convert.ToDouble(actual);
+                    var b = BitConverter.GetBytes(d);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    _plc.WriteBytes(dt, db, start, b);
+                    MarkOk();
+                    _log.LogDebug("LREAL write OK: {Name}={Val}", tagName, d);
+                    return true;
+                }
+
+                if ((vt == "lword" || vt == "ulint" || vt == "lint") && actual is IConvertible)
+                {
+                    byte[] b = vt == "lint"
+                        ? BitConverter.GetBytes(Convert.ToInt64(actual))
+                        : BitConverter.GetBytes(Convert.ToUInt64(actual));
+                    if (BitConverter.IsLittleEndian) Array.Reverse(b);
+                    _plc.WriteBytes(dt, db, start, b);
+                    MarkOk();
+                    _log.LogDebug("64-bit write OK: {Name} ({Type})", tagName, vt);
+                    return true;
+                }
+
+                object w = vt switch
+                {
+                    "bit" => Convert.ToBoolean(actual),
+                    "byte" => Convert.ToByte(actual),
+                    "sint" => unchecked((byte)Convert.ToSByte(actual)), // S7.Net "byte" bekler
+                    "word" => Convert.ToUInt16(actual),
+                    "int" => Convert.ToInt16(actual),
+                    "dword" => Convert.ToUInt32(actual),
+                    "udint" => Convert.ToUInt32(actual),
+                    "dint" => Convert.ToInt32(actual),
+                    _ => throw new NotSupportedException($"VarType '{tag.VarType}' bilinmiyor.")
+                };
+
+                _plc.Write(tag.Address, w);
+                MarkOk();
+                _log.LogDebug("Write OK: {Name}={Val}", tagName, w);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _lastErrorMessage = ex.Message;
+                _log.LogError(ex, "WriteTag failed. Tag={Tag} Err={Msg}", tagName, ex.Message);
+                return false;
+            }
+        }
+
+        public bool TryReadTag<T>(string tagName, out T value, out string? error)
+        {
+            try
+            {
+                value = ReadTag<T>(tagName);
+                error = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                value = default!;
+                error = ex.Message;
+                return false;
+            }
+        }
+
+        public ChannelHealth GetHealth()
+        {
+            var now = DateTimeOffset.UtcNow;
+            double uptime = 0;
+            if (_startUtc.HasValue)
+            {
+                if (IsConnected) uptime = (now - _startUtc.Value).TotalSeconds;
+                else if (_lastOkUtc != DateTimeOffset.MinValue) uptime = (_lastOkUtc - _startUtc.Value).TotalSeconds;
+            }
+
+            return new ChannelHealth
+            {
+                IsConnected = IsConnected,
+                LastOkUtc = _lastOkUtc,
+                LastErrorMessage = _lastErrorMessage,
+                StartTimeUtc = _startUtc,
+                UptimeSeconds = uptime < 0 ? 0 : uptime,
+                ReconnectCount = _reconnectCount,
+                LastReconnectUtc = _lastReconnectUtc
+            };
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                Disconnect();
+                (_plc as IDisposable)?.Dispose();
+            }
+            catch
+            {
+                // yut
+            }
+        }
+
+        // ----------------- Yardımcılar -----------------
+
+        private void EnsureConnected()
+        {
+            if (_plc.IsConnected) return;
+
+            // Bağlı değilsek Connect dene; olmazsa bir kez daha deneyip bırak.
+            if (!Connect())
+            {
+                _log.LogWarning("EnsureConnected: first connect failed; retrying once...");
+                System.Threading.Thread.Sleep(200);
+                if (!Connect())
+                    throw new InvalidOperationException("PLC’ye bağlanılamadı.");
+            }
+        }
+
+        private void MarkOk()
+        {
+            _lastOkUtc = DateTimeOffset.UtcNow;
+            _lastErrorMessage = null;
+        }
+
+        private void ParseDbAddress(string addr, out DataType dt, out int db, out int start, out byte bit)
+        {
+            dt = DataType.DataBlock;
+            bit = 0;
+
+            int dot = addr.IndexOf('.');
+            db = int.Parse(addr.Substring(2, dot - 2));
+            string after = addr[(dot + 1)..].ToUpperInvariant();
+
+            if (after.StartsWith("DBX"))
+            {
+                var parts = after.Substring(3).Split('.');
+                start = int.Parse(parts[0]);
+                if (parts.Length > 1) bit = byte.Parse(parts[1]);
+                return;
+            }
+
+            string digits = new string(after.Where(char.IsDigit).ToArray());
+            start = int.Parse(digits);
+        }
+
+        private bool TryBuildDataItem(TagDefinition tag, out DataItem item)
+        {
+            item = null!;
+            if (tag == null) return false;
+
+            string vt = tag.VarType?.ToLowerInvariant() ?? "";
+            bool supported = vt is "bit" or "byte" or "word" or "int" or "dword" or "udint" or "dint";
+            if (!supported) return false;
+
+            if (!tag.Address.StartsWith("DB", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            ParseDbAddress(tag.Address, out var dt, out var db, out var start, out var bit);
+
+            VarType? s7vt = vt switch
+            {
+                "bit" => VarType.Bit,
+                "byte" => VarType.Byte,
+                "word" => VarType.Word,
+                "int" => VarType.Int,
+                "dword" => VarType.DWord,
+                "udint" => VarType.DWord,
+                "dint" => VarType.DInt,
+                _ => null
+            };
+            if (s7vt == null) return false;
+
+            item = new DataItem
+            {
+                DataType = dt,
+                DB = db,
+                StartByteAdr = start,
+                BitAdr = bit,
+                VarType = s7vt.Value,
+                Count = 1
+            };
+            return true;
+        }
+
+        private object NormalizePrimitive(string vt, object raw)
+        {
+            return vt switch
+            {
+                "bit" => Convert.ToBoolean(raw),
+                "byte" => Convert.ToByte(raw),
+                "sint" => unchecked((sbyte)Convert.ToByte(raw)),
+                "word" => Convert.ToUInt16(raw),
+                "int" => raw is short s ? s : unchecked((short)Convert.ToUInt16(raw)),
+                "dword" => Convert.ToUInt32(raw),
+                "udint" => Convert.ToUInt32(raw),
+                "dint" => raw is int i ? i : unchecked((int)Convert.ToUInt32(raw)),
+                _ => raw
+            };
+        }
+    }
+}
+

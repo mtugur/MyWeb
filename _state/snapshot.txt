@@ -1,5 +1,0 @@
-STATE SNAPSHOT 2025-08-15 00:06:51
-BaseUrl: http://localhost:5113
-Swagger:  _state\swagger.v1.json
-Postman:  _state\myweb-plc.postman_collection.json
-Program:  _state\Program.cs.snapshot.txt

@@ -1,0 +1,7 @@
+﻿PROJE SABITLERI - 2025-08-29 12:33:42
+------------------------------------------------------------
+Repo: (GitHub linkini buraya yaz)
+Lokal KÃ¶k: C:\Users\User\Desktop\Proje\MyWeb
+PLC: IP=192.168.1.113, Rack=0, Slot=1, CPU=S71500 (Ã¶rnek)
+DB: Server=localhost; Database=MyWeb; Trusted_Connection=True
+Swagger: http://localhost:5113/swagger
