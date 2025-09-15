@@ -1,3 +1,0 @@
-﻿[
-  { "name": "PLC1", "type": "Siemens.S7", "address": "192.168.0.10", "settings": { "rack": 0, "slot": 1 } }
-]

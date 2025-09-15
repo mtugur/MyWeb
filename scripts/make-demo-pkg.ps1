@@ -1,54 +1,56 @@
-﻿param(
-  [string]$Root = (Split-Path -Parent $PSCommandPath)
+﻿Param(
+  [string]$OutDir = "$(Split-Path -Path $PSScriptRoot -Parent)\_packages"
 )
-$pkgRoot = Join-Path $Root "_packages"
-$demoDir = Join-Path $pkgRoot "demo"
-$config  = Join-Path $demoDir "config"
-$zip     = Join-Path $pkgRoot "demo.zip"
-$pkg     = Join-Path $pkgRoot "demo.mywebpkg"
 
-New-Item -ItemType Directory -Force -Path $config | Out-Null
+$ErrorActionPreference = "Stop"
 
-# manifest.json
-@"
-{
-  "projectKey": "Demo.Plant",
-  "projectName": "Demo Plant",
-  "projVersion": "1.0.0",
-  "min_engine": ">=1.0"
+# Repo kökü
+$RepoRoot = Resolve-Path "$(Split-Path -Path $PSScriptRoot -Parent)"
+
+# Çıktı klasörünü hazırla
+if (-not (Test-Path $OutDir)) {
+  New-Item -ItemType Directory -Path $OutDir | Out-Null
 }
-"@ | Set-Content -Path (Join-Path $demoDir "manifest.json") -Encoding UTF8
 
-# controllers.json
-@"
-[
-  { "name": "PLC1", "type": "Siemens.S7", "address": "192.168.0.10", "settings": { "rack": 0, "slot": 1 } }
-]
-"@ | Set-Content -Path (Join-Path $config "controllers.json") -Encoding UTF8
+# Basit demo paket içeriği (örnek)
+$pkgName = "demo.mywebpkg"
+$pkgPath = Join-Path $OutDir $pkgName
 
-# tags.json (2 örnek tag + arşiv)
-@"
-[
-  {
-    "path": "Area1/Motor1/Speed",
-    "name": "Speed",
-    "dataType": "Float",
-    "unit": "rpm",
-    "address": "DB1.DBD0",
-    "archive": { "mode": "Deadband", "deadbandAbs": 5, "rollups": ["1m","1h"] }
-  },
-  {
-    "path": "Area1/Motor1/Run",
-    "name": "Run",
-    "dataType": "Bool",
-    "address": "DB1.DBX0.0",
-    "archive": { "mode": "ChangeOnly" }
-  }
-]
-"@ | Set-Content -Path (Join-Path $config "tags.json") -Encoding UTF8
+# Geçici çalışma klasörü
+$temp = Join-Path $OutDir "_tmp_pkg"
+if (Test-Path $temp) { Remove-Item -Recurse -Force $temp }
+New-Item -ItemType Directory -Path $temp | Out-Null
 
-if (Test-Path $zip) { Remove-Item $zip -Force }
-if (Test-Path $pkg) { Remove-Item $pkg -Force }
-Compress-Archive -Path "$demoDir\*" -DestinationPath $zip -Force
-Rename-Item -Path $zip -NewName (Split-Path -Leaf $pkg)
-Write-Host "OK: $pkg oluşturuldu." -ForegroundColor Green
+# Minimal manifest ve içerikler
+$manifest = @{
+  Id        = "Demo.Plant"
+  Name      = "Demo Plant"
+  Version   = "1.0.0"
+  CreatedUtc= (Get-Date).ToUniversalTime().ToString("o")
+} | ConvertTo-Json -Depth 5
+
+$controllersJson = @(
+  @{ Name="HistoryController"; Route="/api/hist"; Version="1.0.0" }
+) | ConvertTo-Json -Depth 5
+
+$tagsJson = @(
+  @{ Name="tBool";   Path="Demo/tBool";   DataType=0; Address="DB1000.DBX0.0"; LongString=$false }
+  @{ Name="tInt";    Path="Demo/tInt";    DataType=1; Address="DB1000.DBW16";  LongString=$false }
+  @{ Name="tDInt";   Path="Demo/tDInt";   DataType=1; Address="DB1000.DBD30";  LongString=$false }
+  @{ Name="tReal";   Path="Demo/tReal";   DataType=2; Address="DB1000.DBD42";  LongString=$false }
+  @{ Name="tString"; Path="Demo/tString"; DataType=3; Address="DB1000.DBB54";  LongString=$false }
+) | ConvertTo-Json -Depth 5
+
+Set-Content -Path (Join-Path $temp "manifest.json") -Value $manifest -Encoding UTF8
+Set-Content -Path (Join-Path $temp "controllers.json") -Value $controllersJson -Encoding UTF8
+Set-Content -Path (Join-Path $temp "tags.json") -Value $tagsJson -Encoding UTF8
+
+# Paketle (zip uzantısız mywebpkg)
+if (Test-Path $pkgPath) { Remove-Item $pkgPath -Force }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($temp, $pkgPath)
+
+# Temizle
+Remove-Item -Recurse -Force $temp
+
+Write-Host "[INFO] Demo paket üretildi: $pkgPath"

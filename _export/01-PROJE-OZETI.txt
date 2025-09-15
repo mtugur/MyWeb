@@ -1,4 +1,4 @@
-﻿PROJE OZETI - 2025-09-15 15:17:45
+﻿PROJE OZETI - 2025-09-15 15:46:12
 ------------------------------------------------------------
 AmaÃ§: PLC verisini okuma â†’ arÅŸivleme â†’ sorgu â†’ trend UI.
 Katmanlar: Core, Infrastructure(Persistence), Modules(Comm), Runtime, WebApp.
@@ -11,6 +11,7 @@ Ana URL: http://localhost:5113  | Swagger: /swagger
 Folder PATH listing
 Volume serial number is EAE4-C23B
 C:.
+|   .gitattributes
 |   .gitignore
 |   MyWeb.sln
 |   proje_ ”zeti.txt
@@ -23,10 +24,20 @@ C:.
 |       SMOKE_TEST.md
 |       
 +---scripts
-|       emit-project-files.ps1
-|       make-demo-pkg.ps1
-|       Save-StateAndPush.ps1
-|       
+|   |   emit-project-files.ps1
+|   |   make-demo-pkg.ps1
+|   |   Save-StateAndPush.ps1
+|   |   
+|   \---_packages
+|       |   demo.mywebpkg
+|       |   
+|       \---demo
+|           |   manifest.json
+|           |   
+|           \---config
+|                   controllers.json
+|                   tags.json
+|                   
 +---src
 |   +---Core
 |   |   \---MyWeb.Core

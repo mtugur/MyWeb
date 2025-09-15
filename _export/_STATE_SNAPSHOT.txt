@@ -1,8 +1,10 @@
-﻿_STATE_SNAPSHOT - 2025-09-15 15:17:45
+﻿_STATE_SNAPSHOT - 2025-09-15 15:46:12
 Branch: feat/runtime-watchdog
-SHA:    a9889c5
+SHA:    91d774e
 
 --- LAST 10 COMMITS ---
+91d774e chore: enforce CRLF via .gitattributes
+a20d726 [STATE] S3 tamam: Trend UI + export + state | 2025-09-15 15:18:17
 a9889c5 state: snapshot @ 2025-09-15 14:13:58
 a7881c4 se├ºilen zaman aral─▒─ƒ─▒nda tek trend ├ºizimi ba┼ƒar─▒ ile olu┼ƒturuldu
 4b1fdbd S4: V2 ge├ºi┼ƒ tamamland─▒ (HistoryWriterService V2, tablo schema, NullHistoryWriter, appsettings)
@@ -11,5 +13,3 @@ ad62657 state/snapshot: S2 done; prep for S3 (History Query API + Trend UI)
 3d12fd6 S2┬╖Step-2c: Retention (Ar┼ƒiv Temizleme) servisi eklendi ve test edildi
 25f2299 state: snapshot (git sha/branch/status, build stamp)
 ec9c62c S2 ┬╖ StepΓÇæ2b: historian write path stabilized (bulk insert), sampling OK, indexes ensured
-0e541cd HistoryWriterService implements IHistoryWriter; DI maps IHistoryWriter to the hosted singleton
-3d7cfe2 Hotfix: remove IHistoryWriter DI mapping until HistoryWriterService implements it

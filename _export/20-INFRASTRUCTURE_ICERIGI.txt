@@ -1,4 +1,4 @@
-﻿20-INFRASTRUCTURE_ICERIGI.txt - 2025-09-15 15:17:45
+﻿20-INFRASTRUCTURE_ICERIGI.txt - 2025-09-15 15:46:12
 ------------------------------------------------------------
 Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Infrastructure\MyWeb.Infrastructure.Data
 
@@ -6,7 +6,7 @@ Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Infrastructure\MyWeb.Infrastructur
 --- KLASOR AGACI ---
 
 Folder PATH listing
-Volume serial number is 00000034 EAE4:C23B
+Volume serial number is 00000014 EAE4:C23B
 C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\INFRASTRUCTURE\MYWEB.INFRASTRUCTURE.DATA
 |   Class1.cs
 |   MyWeb.Persistence.csproj
@@ -10198,7 +10198,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MyWeb.Persistence")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a9889c54e007fbe8057ac333e1d900855603d77a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+91d774e62e4d7dad5671e4462510dd4f28d76c74")]
 [assembly: System.Reflection.AssemblyProductAttribute("MyWeb.Persistence")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MyWeb.Persistence")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
@@ -10225,4 +10225,4 @@ global using global::System.Threading.Tasks;
 Dosya: src\Infrastructure\MyWeb.Infrastructure.Data\obj\Release\net9.0\MyWeb.Persistence.sourcelink.json
 ==================================================
 
-{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/a9889c54e007fbe8057ac333e1d900855603d77a/*"}}
+{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/91d774e62e4d7dad5671e4462510dd4f28d76c74/*"}}

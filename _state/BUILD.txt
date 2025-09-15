@@ -1,2 +1,1 @@
-﻿Build: Release
-Time: 2025-09-15 15:17:41 +03:00
+﻿Release build: OK

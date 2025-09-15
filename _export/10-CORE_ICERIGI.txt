@@ -1,4 +1,4 @@
-﻿10-CORE_ICERIGI.txt - 2025-09-15 15:17:45
+﻿10-CORE_ICERIGI.txt - 2025-09-15 15:46:12
 ------------------------------------------------------------
 Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Core\MyWeb.Core
 
@@ -6,7 +6,7 @@ Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Core\MyWeb.Core
 --- KLASOR AGACI ---
 
 Folder PATH listing
-Volume serial number is 00000020 EAE4:C23B
+Volume serial number is 00000025 EAE4:C23B
 C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\CORE\MYWEB.CORE
 |   Class1.cs
 |   MyWeb.Core.csproj
@@ -810,7 +810,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MyWeb.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a9889c54e007fbe8057ac333e1d900855603d77a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+91d774e62e4d7dad5671e4462510dd4f28d76c74")]
 [assembly: System.Reflection.AssemblyProductAttribute("MyWeb.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MyWeb.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
@@ -837,7 +837,7 @@ global using global::System.Threading.Tasks;
 Dosya: src\Core\MyWeb.Core\obj\Release\net9.0\MyWeb.Core.sourcelink.json
 ==================================================
 
-{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/a9889c54e007fbe8057ac333e1d900855603d77a/*"}}
+{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/91d774e62e4d7dad5671e4462510dd4f28d76c74/*"}}
 
 ==================================================
 Dosya: src\Core\MyWeb.Core\Runtime\Health\HealthStatus.cs
