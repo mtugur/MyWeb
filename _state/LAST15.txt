@@ -1,15 +1,1 @@
-﻿a7881c4 se├ºilen zaman aral─▒─ƒ─▒nda tek trend ├ºizimi ba┼ƒar─▒ ile olu┼ƒturuldu
-4b1fdbd S4: V2 ge├ºi┼ƒ tamamland─▒ (HistoryWriterService V2, tablo schema, NullHistoryWriter, appsettings)
-0452c7a chore: ignore _state and package outputs
-ad62657 state/snapshot: S2 done; prep for S3 (History Query API + Trend UI)
-3d12fd6 S2┬╖Step-2c: Retention (Ar┼ƒiv Temizleme) servisi eklendi ve test edildi
-25f2299 state: snapshot (git sha/branch/status, build stamp)
-ec9c62c S2 ┬╖ StepΓÇæ2b: historian write path stabilized (bulk insert), sampling OK, indexes ensured
-0e541cd HistoryWriterService implements IHistoryWriter; DI maps IHistoryWriter to the hosted singleton
-3d7cfe2 Hotfix: remove IHistoryWriter DI mapping until HistoryWriterService implements it
-164e3ef DI fix: bind DbConnOptions from ConnectionStrings; register hosted services; expose HistoryWriterService as IHistoryWriter
-a252c4f Add DbConnOptions bound to ConnectionStrings for History writer
-7f4ece0 History: safe rewrite using parametrized multi-row INSERT (fix broken method body)
-ab34324 History: replace SqlBulkCopy with parametrized multi-row INSERT to avoid column mapping issues
-3fa1dc2 Fix: SqlBulkCopy column mappings by ordinal (Utc,Tag,Value,Quality) to skip identity Id
-cef47c5 Fix: bind DbConnOptions via Options pattern (uses ConnectionStrings) to fix empty connection string
+﻿

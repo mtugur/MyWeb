@@ -1,4 +1,4 @@
-# tools\emit-project-files.ps1
+# scripts\emit-project-files.ps1
 param(
   [string]$RepoRoot = "$PWD",              # Proje kökü
   [string]$OutDir   = "$PWD\_export",      # Geçici üretim klasörü
