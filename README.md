@@ -1,70 +1,23 @@
-﻿# MyWeb — Modüler SCADA/MES (ASP.NET + SQL Server)
+﻿# MyWeb — Sprint-1/2 Notları
 
-Ignition benzeri, modüler SCADA/MES temelli bir .NET çözümü.
+## Çalıştırma
+```ps1
+dotnet build
+dotnet run --project .\src\WebApp\MyWeb.WebApp\MyWeb.WebApp.csproj
+Swagger: http://localhost:5113/swagger
 
-1) Hızlı Başlangıç
+Veritabanı: MyWeb (Schemas: catalog, hist)
 
-	```powershell
-	# 1) Bağımlılıklar
-		# - .NET SDK 9
-		# - SQL Server (localdb veya instance)
-		# - SSMS (seed SQL çalıştırmak için)
+Bootstrap paket yolu: _packages\demo.mywebpkg
 
-	# 2) Veritabanı ve tablo
-		# SSMS: MyWeb DB oluşturun, aşağıdaki seed dosyasını çalıştırın:
-		#   scripts/sql/seed-demo.sql  (projeyi/etiketleri ve hist.Samples V2 şemasını kurar)
+API’ler
+GET /api/projects
 
-	# 3) Çalıştır
-		dotnet run --project .\src\WebApp\MyWeb.WebApp\MyWeb.WebApp.csproj
-		# http://localhost:5113/history/trend
-2) Mimari
+GET /api/tags?projectKey=Demo.Plant&q=&page=1&pageSize=100
 
-	Core: domain tipleri, Hist.DataType vs.
+GET /api/samples?tagPath=Area1/Motor1/Speed&projectKey=Demo.Plant&from=2025-08-12T00:00:00Z&to=2025-08-13T00:00:00Z&page=1&pageSize=100
 
-	Infrastructure: CatalogDbContext (catalog şema), HistorianDbContext (hist şema)
+PLC
+Siemens PLC IP: 192.168.1.113
 
-	Modules: Siemens S7 haberleşme (S7.NetPlus)
-	
-	Runtime: Hosted Services (Sampling, HistoryWriter V2, Retention)
-
-	WebApp: API + MVC (Trend view, Chart.js)
-
-3) Trend UI
-
-	Sayfa: /history/trend
-
-	Script: wwwroot/js/history-trend.js
-
-	Zaman dilimi: UI datetime-local değerleri yerel’dir; JS bunları UTC ISO'ya çevirip API’ye yollar.
-
-	Eksende tarih+saat (TR), tooltipte saniye dahil.
-
-4) Seed/Bootstrap
-
-	Demo proje: Demo.Plant
-
-	Demo tag: tDInt (2 günlük sinüs seed örnek script’i: scripts/sql/seed-samples-dint.sql)
-
-5) Export & State
-
-	_export/: proje özeti, dosya ağaçları ve içerikler (ChatGPT “Dosyalar” için)
-
-	_state/: GIT ve son çalıştırma durum anlık görüntüleri
-
-	Tek komut: .\scripts\Save-StateAndPush.ps1
-
-6) Geliştirme
-
-	.gitignore güncel; Logs/ ve build çıktıları repo dışı.
-
-	EF Core: tek DB, iki şema (catalog, hist).
-
-	V2 hist.Samples: TagId + Utc clustered index, MonthKey computed.
-
-7) Yol Haritası (kısa vade)
-
-	S4: Alarm/Event tablosu + servis
-
-	Sx: Rollup/aggregate (saatlik/günlük)
-
-	Güvenlik/Yetkilendirme (Identity)
+Manuel tag tanımları ileride kaldırılacak; paket/snapshot üzerinden gelecek.
