@@ -1,4 +1,4 @@
-﻿30-MODULES_ICERIGI.txt - 2025-08-29 12:33:42
+﻿30-MODULES_ICERIGI.txt - 2025-09-15 14:13:10
 ------------------------------------------------------------
 Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Modules
 
@@ -6,7 +6,7 @@ Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Modules
 --- KLASOR AGACI ---
 
 Folder PATH listing
-Volume serial number is 000000EC EAE4:C23B
+Volume serial number is 00000053 EAE4:C23B
 C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\MODULES
 \---Communication.Siemens
     \---MyWeb.Communication.Siemens

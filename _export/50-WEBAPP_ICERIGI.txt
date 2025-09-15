@@ -1,4 +1,4 @@
-﻿50-WEBAPP_ICERIGI.txt - 2025-08-29 12:33:42
+﻿50-WEBAPP_ICERIGI.txt - 2025-09-15 14:13:10
 ------------------------------------------------------------
 Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\WebApp\MyWeb.WebApp
 
@@ -6,7 +6,7 @@ Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\WebApp\MyWeb.WebApp
 --- KLASOR AGACI ---
 
 Folder PATH listing
-Volume serial number is 000000A3 EAE4:C23B
+Volume serial number is 0000003D EAE4:C23B
 C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\WEBAPP\MYWEB.WEBAPP
 |   appsettings.Development.json
 |   appsettings.json

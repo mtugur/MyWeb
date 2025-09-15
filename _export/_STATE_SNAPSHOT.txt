@@ -1,8 +1,9 @@
-﻿_STATE_SNAPSHOT - 2025-08-29 12:33:42
+﻿_STATE_SNAPSHOT - 2025-09-15 14:13:10
 Branch: feat/runtime-watchdog
-SHA:    4b1fdbd
+SHA:    a7881c4
 
 --- LAST 10 COMMITS ---
+a7881c4 se├ºilen zaman aral─▒─ƒ─▒nda tek trend ├ºizimi ba┼ƒar─▒ ile olu┼ƒturuldu
 4b1fdbd S4: V2 ge├ºi┼ƒ tamamland─▒ (HistoryWriterService V2, tablo schema, NullHistoryWriter, appsettings)
 0452c7a chore: ignore _state and package outputs
 ad62657 state/snapshot: S2 done; prep for S3 (History Query API + Trend UI)
@@ -12,4 +13,3 @@ ec9c62c S2 ┬╖ StepΓÇæ2b: historian write path stabilized (bulk insert), s
 0e541cd HistoryWriterService implements IHistoryWriter; DI maps IHistoryWriter to the hosted singleton
 3d7cfe2 Hotfix: remove IHistoryWriter DI mapping until HistoryWriterService implements it
 164e3ef DI fix: bind DbConnOptions from ConnectionStrings; register hosted services; expose HistoryWriterService as IHistoryWriter
-a252c4f Add DbConnOptions bound to ConnectionStrings for History writer

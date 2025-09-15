@@ -1,4 +1,4 @@
-﻿20-INFRASTRUCTURE_ICERIGI.txt - 2025-08-29 12:33:42
+﻿20-INFRASTRUCTURE_ICERIGI.txt - 2025-09-15 14:13:10
 ------------------------------------------------------------
 Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Infrastructure\MyWeb.Infrastructure.Data
 
@@ -6,7 +6,7 @@ Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Infrastructure\MyWeb.Infrastructur
 --- KLASOR AGACI ---
 
 Folder PATH listing
-Volume serial number is 0000007B EAE4:C23B
+Volume serial number is 000000D9 EAE4:C23B
 C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\INFRASTRUCTURE\MYWEB.INFRASTRUCTURE.DATA
 |   Class1.cs
 |   MyWeb.Persistence.csproj
