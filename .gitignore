@@ -20,7 +20,6 @@ Logs/
 .vs/
 
 # Paketler ve yerel dosyalar
-_state/
 _packages/*.zip
 _packages/*.mywebpkg
 _postman/**/generated/*
