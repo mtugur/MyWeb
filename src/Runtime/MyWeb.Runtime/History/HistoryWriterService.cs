@@ -1,36 +1,39 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MyWeb.Core.Hist;                    // DataType, ArchiveMode
+using MyWeb.Persistence.Catalog;          // CatalogDbContext + Tag/Archive
+using System;
 using System.Collections.Concurrent;
 using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MyWeb.Core.Hist;
-using MyWeb.Persistence.Catalog;
 
 namespace MyWeb.Runtime.History
 {
     /// <summary>
-    /// Arşivli tag'leri periyodik okur (DEMO: rastgele), deadband/change-only uygular ve hist.Samples'a toplu yazar.
+    /// Arşivli tag'leri periyodik okur (DEMO: rastgele), deadband/change-only uygular
+    /// ve V2 şemasındaki hist.Samples'a toplu (SqlBulkCopy) yazar.
     /// </summary>
     public sealed class HistoryWriterService : BackgroundService
     {
         private readonly ILogger<HistoryWriterService> _log;
-        private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory; // tam nitelikli
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IOptions<HistoryWriterOptions> _opt;
         private readonly IConfiguration _cfg;
 
         // Son değer önbelleği (deadband/change-only için)
+        // key: TagId  -> (DataType, lastValue)
         private readonly ConcurrentDictionary<int, (DataType type, object? value)> _last = new();
 
         public HistoryWriterService(
             ILogger<HistoryWriterService> log,
-            Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory,
+            IServiceScopeFactory scopeFactory,
             IOptions<HistoryWriterOptions> opt,
             IConfiguration cfg)
         {
@@ -45,17 +48,19 @@ namespace MyWeb.Runtime.History
             var o = _opt.Value;
             if (!o.Enabled)
             {
-                _log.LogInformation("HistoryWriter kapalı (Enabled=false).");
+                _log.LogInformation("HistoryWriter (V2) kapalı (Enabled=false).");
                 return;
             }
 
             var poll = Math.Max(100, o.PollMs);
-            _log.LogInformation("HistoryWriter başladı: Poll={poll}ms, Batch={batch}, Random={rand}", poll, o.BatchSize, o.UseRandom);
+            _log.LogInformation("HistoryWriter (V2) başladı: Poll={poll}ms, Batch={batch}, Random={rand}",
+                poll, o.BatchSize, o.UseRandom);
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 try { await DoWorkAsync(stoppingToken); }
-                catch (Exception ex) { _log.LogError(ex, "HistoryWriter döngü hatası."); }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
+                catch (Exception ex) { _log.LogError(ex, "HistoryWriter (V2) döngü hatası."); }
 
                 try { await Task.Delay(poll, stoppingToken); } catch { /* cancelled */ }
             }
@@ -64,63 +69,72 @@ namespace MyWeb.Runtime.History
         private async Task DoWorkAsync(CancellationToken ct)
         {
             using var scope = _scopeFactory.CreateScope();
-
-            // GetService kullan: extension gerektirmez
             var sp = scope.ServiceProvider;
-            var db = sp.GetService(typeof(CatalogDbContext)) as CatalogDbContext
-                     ?? throw new InvalidOperationException("CatalogDbContext bulunamadı (DI).");
-            var o  = _opt.Value;
 
-            // Proje seçimi: sadece Id'yi çek (anonymous projection)
+            var db = sp.GetRequiredService<CatalogDbContext>();
+            var o = _opt.Value;
+
+            // Proje seçimi: ProjectKey verilmişse ona göre, yoksa ilk proje
             var projRow = await db.Projects.AsNoTracking()
                 .Where(p => string.IsNullOrWhiteSpace(o.ProjectKey) || p.Key == o.ProjectKey)
                 .OrderBy(p => p.Id)
                 .Select(p => new { p.Id })
                 .FirstOrDefaultAsync(ct);
 
-            if (projRow == null)
+            if (projRow is null)
             {
-                _log.LogWarning("HistoryWriter: Proje bulunamadı (ProjectKey={key}).", o.ProjectKey ?? "<null>");
+                _log.LogWarning("HistoryWriter (V2): Proje bulunamadı (ProjectKey={key}).", o.ProjectKey ?? "<null>");
                 return;
             }
-
             int projId = projRow.Id;
 
-            // Arşivli tag'ler
-            var tags = await db.Tags.Include(t => t.Archive)
-                .Where(t => t.ProjectId == projId && t.Archive != null)
+            // Arşivli tag'ler (Archive != null)
+            var tags = await db.Tags
+                .Include(t => t.Archive)
                 .AsNoTracking()
+                .Where(t => t.ProjectId == projId && t.Archive != null)
                 .ToListAsync(ct);
 
             if (tags.Count == 0)
             {
-                _log.LogDebug("HistoryWriter: Arşivli tag yok (ProjectId={pid}).", projId);
+                _log.LogDebug("HistoryWriter (V2): Arşivli tag yok (ProjectId={pid}).", projId);
                 return;
             }
 
-            // DEMO değer üret + filtrele + batch
+            // DEMO: değer üret + filtrele + batch hazırla
             var now = DateTime.UtcNow;
-            var table = SampleWriteRow.CreateTable();
+            var table = CreateV2Table();
 
             foreach (var t in tags)
             {
-                if (table.Rows.Count >= o.BatchSize) break;
+                if (table.Rows.Count >= Math.Max(1, o.BatchSize)) break;
 
+                // Değer üretimi: Şimdilik UseRandom true ise rastgele
                 var (ok, num, txt, b) = o.UseRandom ? GenerateRandom(t.DataType) : (false, (double?)null, (string?)null, (bool?)null);
-                if (!o.UseRandom && !ok) continue; // PLC bağlanınca gelecek
+                if (!o.UseRandom && !ok) continue; // Gerçekte PLC okumaları geldiğinde doldurulacak.
 
-                if (!ShouldWrite(t.Id, t.DataType, t.Archive!.Mode, t.Archive.DeadbandAbs, t.Archive.DeadbandPercent, num, txt, b))
+                // ChangeOnly/Deadband/Always kontrolü
+                var arch = t.Archive!;
+                if (!ShouldWrite(t.Id, t.DataType, arch.Mode, arch.DeadbandAbs, arch.DeadbandPercent, num, txt, b))
                     continue;
 
-                new SampleWriteRow {
-                    ProjectId = projId, TagId = t.Id, Utc = now, DataType = t.DataType,
-                    ValueNumeric = num, ValueText = txt, ValueBool = b, Quality = 0, Source = 1
-                }.AddTo(table);
+                // V2 satırı ekle
+                var row = table.NewRow();
+                row["ProjectId"] = projId;
+                row["TagId"] = t.Id;
+                row["Utc"] = now;
+                row["DataType"] = (byte)t.DataType;   // enum -> tinyint
+                row["ValueNumeric"] = (object?)num ?? DBNull.Value;
+                row["ValueText"] = (object?)txt ?? DBNull.Value;
+                row["ValueBool"] = (object?)b ?? DBNull.Value;
+                row["Quality"] = (short)0;           // 0 = Good
+                row["Source"] = (byte)1;            // 1 = Demo/Runtime
+                table.Rows.Add(row);
             }
 
             if (table.Rows.Count == 0) return;
 
-            // Bulk insert
+            // Bulk insert -> hist.Samples (V2)
             var connStr = _cfg.GetConnectionString("HistorianDb")
                          ?? throw new InvalidOperationException("HistorianDb connection string yok.");
             using var conn = new SqlConnection(connStr);
@@ -132,18 +146,36 @@ namespace MyWeb.Runtime.History
                 BatchSize = table.Rows.Count,
                 BulkCopyTimeout = 60
             };
-            bulk.ColumnMappings.Add("ProjectId",    "ProjectId");
-            bulk.ColumnMappings.Add("TagId",        "TagId");
-            bulk.ColumnMappings.Add("Utc",          "Utc");
-            bulk.ColumnMappings.Add("DataType",     "DataType");
+
+            bulk.ColumnMappings.Add("ProjectId", "ProjectId");
+            bulk.ColumnMappings.Add("TagId", "TagId");
+            bulk.ColumnMappings.Add("Utc", "Utc");
+            bulk.ColumnMappings.Add("DataType", "DataType");
             bulk.ColumnMappings.Add("ValueNumeric", "ValueNumeric");
-            bulk.ColumnMappings.Add("ValueText",    "ValueText");
-            bulk.ColumnMappings.Add("ValueBool",    "ValueBool");
-            bulk.ColumnMappings.Add("Quality",      "Quality");
-            bulk.ColumnMappings.Add("Source",       "Source");
+            bulk.ColumnMappings.Add("ValueText", "ValueText");
+            bulk.ColumnMappings.Add("ValueBool", "ValueBool");
+            bulk.ColumnMappings.Add("Quality", "Quality");
+            bulk.ColumnMappings.Add("Source", "Source");
 
             await bulk.WriteToServerAsync(table, ct);
-            _log.LogInformation("HistoryWriter: {n} örnek yazıldı (ProjectId={pid}).", table.Rows.Count, projId);
+
+            _log.LogInformation("HistoryWriter (V2): {n} örnek yazıldı (ProjectId={pid}).", table.Rows.Count, projId);
+        }
+
+        private static DataTable CreateV2Table()
+        {
+            var dt = new DataTable();
+            // V2 kolonları (Id yok; identity)
+            dt.Columns.Add("ProjectId", typeof(int));
+            dt.Columns.Add("TagId", typeof(int));
+            dt.Columns.Add("Utc", typeof(DateTime));
+            dt.Columns.Add("DataType", typeof(byte));    // enum -> tinyint
+            dt.Columns.Add("ValueNumeric", typeof(double));  // nullable
+            dt.Columns.Add("ValueText", typeof(string));  // nullable
+            dt.Columns.Add("ValueBool", typeof(bool));    // nullable
+            dt.Columns.Add("Quality", typeof(short));
+            dt.Columns.Add("Source", typeof(byte));    // nullable ama DataTable'da DBNull.Value ile geçeriz
+            return dt;
         }
 
         private static (bool ok, double? num, string? txt, bool? b) GenerateRandom(DataType dt)
@@ -151,28 +183,36 @@ namespace MyWeb.Runtime.History
             var rnd = Random.Shared;
             return dt switch
             {
-                DataType.Bool   => (true, null, null, rnd.Next(0, 2) == 0),
-                DataType.Int    => (true, rnd.Next(-1000, 1000), null, null),
-                DataType.Float  => (true, rnd.NextDouble() * 1000.0, null, null),
+                DataType.Bool => (true, null, null, rnd.Next(0, 2) == 0),
+                DataType.Int => (true, rnd.Next(-1000, 1000), null, null),
+                DataType.Float => (true, rnd.NextDouble() * 1000.0, null, null),
                 DataType.String => (true, null, "S" + rnd.Next(0, 1000), null),
-                DataType.Date   => (true, null, DateTime.UtcNow.ToString("O"), null),
-                _               => (false, null, null, null)
+                DataType.Date => (true, null, DateTime.UtcNow.ToString("O"), null),
+                _ => (false, null, null, null)
             };
         }
 
-        private bool ShouldWrite(int tagId, DataType dt, Core.Hist.ArchiveMode mode, double? deadAbs, double? deadPct, double? num, string? txt, bool? b)
+        private bool ShouldWrite(
+            int tagId,
+            DataType dt,
+            ArchiveMode mode,
+            double? deadAbs,
+            double? deadPct,
+            double? num,
+            string? txt,
+            bool? b)
         {
             object? current = dt switch
             {
-                DataType.Bool   => b,
-                DataType.Int    => num,
-                DataType.Float  => num,
+                DataType.Bool => b,
+                DataType.Int => num,
+                DataType.Float => num,
                 DataType.String => txt,
-                DataType.Date   => txt, // ISO 8601
+                DataType.Date => txt, // ISO 8601
                 _ => null
             };
 
-            if (mode == Core.Hist.ArchiveMode.Always)
+            if (mode == ArchiveMode.Always)
             {
                 _last[tagId] = (dt, current);
                 return true;
@@ -184,22 +224,22 @@ namespace MyWeb.Runtime.History
                 return true; // ilk değer
             }
 
-            if (mode == Core.Hist.ArchiveMode.ChangeOnly)
+            if (mode == ArchiveMode.ChangeOnly)
             {
                 bool changed = dt switch
                 {
-                    DataType.Bool   => !Equals(last.value as bool?, b),
-                    DataType.Int    => !Equals(last.value as double?, num),
-                    DataType.Float  => !Equals(last.value as double?, num),
+                    DataType.Bool => !Equals(last.value as bool?, b),
+                    DataType.Int => !Equals(last.value as double?, num),
+                    DataType.Float => !Equals(last.value as double?, num),
                     DataType.String => !Equals(last.value as string, txt),
-                    DataType.Date   => !Equals(last.value as string, txt),
+                    DataType.Date => !Equals(last.value as string, txt),
                     _ => true
                 };
                 if (changed) _last[tagId] = (dt, current);
                 return changed;
             }
 
-            // Deadband (sayısal)
+            // Deadband (sayısal tipler)
             if (dt is DataType.Int or DataType.Float && num.HasValue)
             {
                 var lastNum = last.value as double?;

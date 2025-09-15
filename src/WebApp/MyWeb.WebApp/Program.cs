@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using MyWeb.Runtime;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection; // CreateScope/GetRequiredService
 using Microsoft.Extensions.Options;
@@ -9,7 +10,6 @@ using MyWeb.Persistence.Historian;
 using Serilog;
 
 // Runtime extension (HostedService/Bootstrap kayıtları için)
-using MyWeb.Runtime.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,7 +46,7 @@ builder.Services.AddDbContext<HistorianDbContext>(opt =>
 });
 
 // [Runtime] Bootstrap/Package yükleme + snapshot servisleri (HostedService)
-builder.Services.AddMyWebRuntime(builder.Configuration);
+MyWeb.Runtime.ServiceCollectionExtensions.AddMyWebRuntime(builder.Services, builder.Configuration);
 
 // --- PLC bağlantı ayarları ---
 builder.Services.Configure<PlcConnectionSettings>(
@@ -103,6 +103,7 @@ else
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
@@ -133,3 +134,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+

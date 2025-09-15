@@ -1,0 +1,906 @@
+﻿10-CORE_ICERIGI.txt - 2025-09-15 15:46:12
+------------------------------------------------------------
+Kaynak: C:\Users\User\Desktop\Proje\MyWeb\src\Core\MyWeb.Core
+
+
+--- KLASOR AGACI ---
+
+Folder PATH listing
+Volume serial number is 00000025 EAE4:C23B
+C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC\CORE\MYWEB.CORE
+|   Class1.cs
+|   MyWeb.Core.csproj
+|   
++---bin
+|   +---Debug
+|   |   \---net9.0
+|   |           MyWeb.Core.deps.json
+|   |           MyWeb.Core.dll
+|   |           MyWeb.Core.pdb
+|   |           
+|   \---Release
+|       \---net9.0
+|               MyWeb.Core.deps.json
+|               MyWeb.Core.dll
+|               MyWeb.Core.pdb
+|               
++---Communication
+|       ChannelState.cs
+|       CommunicationOptions.cs
+|       ICommunicationChannel.cs
+|       ReadResult.cs
+|       ResilientCommunicationChannelDecorator.cs
+|       TagDefinition.cs
+|       TagQuality.cs
+|       WriteResult.cs
+|       
++---Hist
+|       ArchiveMode.cs
+|       DataType.cs
+|       
++---History
+|       SamplePoint.cs
+|       
++---obj
+|   |   MyWeb.Core.csproj.nuget.dgspec.json
+|   |   MyWeb.Core.csproj.nuget.g.props
+|   |   MyWeb.Core.csproj.nuget.g.targets
+|   |   project.assets.json
+|   |   project.nuget.cache
+|   |   
+|   +---Debug
+|   |   \---net9.0
+|   |       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |       |   MyWeb.Core.AssemblyInfo.cs
+|   |       |   MyWeb.Core.AssemblyInfoInputs.cache
+|   |       |   MyWeb.Core.assets.cache
+|   |       |   MyWeb.Core.csproj.CoreCompileInputs.cache
+|   |       |   MyWeb.Core.csproj.FileListAbsolute.txt
+|   |       |   MyWeb.Core.dll
+|   |       |   MyWeb.Core.GeneratedMSBuildEditorConfig.editorconfig
+|   |       |   MyWeb.Core.GlobalUsings.g.cs
+|   |       |   MyWeb.Core.pdb
+|   |       |   MyWeb.Core.sourcelink.json
+|   |       |   
+|   |       +---ref
+|   |       |       MyWeb.Core.dll
+|   |       |       
+|   |       \---refint
+|   |               MyWeb.Core.dll
+|   |               
+|   \---Release
+|       \---net9.0
+|           |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|           |   MyWeb.Core.AssemblyInfo.cs
+|           |   MyWeb.Core.AssemblyInfoInputs.cache
+|           |   MyWeb.Core.assets.cache
+|           |   MyWeb.Core.csproj.CoreCompileInputs.cache
+|           |   MyWeb.Core.csproj.FileListAbsolute.txt
+|           |   MyWeb.Core.dll
+|           |   MyWeb.Core.GeneratedMSBuildEditorConfig.editorconfig
+|           |   MyWeb.Core.GlobalUsings.g.cs
+|           |   MyWeb.Core.pdb
+|           |   MyWeb.Core.sourcelink.json
+|           |   
+|           +---ref
+|           |       MyWeb.Core.dll
+|           |       
+|           \---refint
+|                   MyWeb.Core.dll
+|                   
+\---Runtime
+    \---Health
+            HealthStatus.cs
+            IRuntimeHealthProvider.cs
+            RuntimeHealthSnapshot.cs
+            
+
+==================================================
+Dosya: src\Core\MyWeb.Core\MyWeb.Core.csproj
+==================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\bin\Debug\net9.0\MyWeb.Core.deps.json
+==================================================
+
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "MyWeb.Core/1.0.0": {
+        "runtime": {
+          "MyWeb.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MyWeb.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
+
+==================================================
+Dosya: src\Core\MyWeb.Core\bin\Release\net9.0\MyWeb.Core.deps.json
+==================================================
+
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "MyWeb.Core/1.0.0": {
+        "runtime": {
+          "MyWeb.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MyWeb.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Class1.cs
+==================================================
+
+namespace MyWeb.Core;
+
+public class Class1
+{
+
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\ChannelState.cs
+==================================================
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Kanalın çalışma/bağlantı durumu.
+    /// </summary>
+    public enum ChannelState
+    {
+        Disconnected = 0,
+        Connecting = 1,
+        Connected = 2,
+        Faulted = 3
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\CommunicationOptions.cs
+==================================================
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Kanal genel zaman aşımı ve tekrar deneme ayarları.
+    /// DB yok; şimdilik sabit/DI ile verilebilir.
+    /// </summary>
+    public sealed class CommunicationOptions
+    {
+        /// <summary>Her işlem için tekrar sayısı (başlangıç denemesi + bu kadar retry).</summary>
+        public int MaxRetryCount { get; set; } = 1;
+
+        /// <summary>Retry aralığı (ms).</summary>
+        public int RetryDelayMs { get; set; } = 100;
+
+        /// <summary>Gelecekte per-op timeout uygulanabilir (S7.Net sync çalıştığı için burada saklıyoruz).</summary>
+        public int OperationTimeoutMs { get; set; } = 2000;
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\ICommunicationChannel.cs
+==================================================
+
+using System;
+using System.Collections.Generic;
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Tüm haberleşme sürücülerinin uyması gereken ortak arayüz.
+    /// OPC UA, ModbusTCP, Siemens S7 vb. tüm kanallar aynı sözleşme ile kullanılabilir.
+    /// </summary>
+    public interface ICommunicationChannel : IDisposable
+    {
+        bool Connect();
+        void Disconnect();
+        bool IsConnected { get; }
+
+        void AddTag(TagDefinition tag);
+        bool RemoveTag(string tagName);
+
+        T ReadTag<T>(string tagName);
+        Dictionary<string, object> ReadTags(IEnumerable<string> tagNames);
+        bool WriteTag(string tagName, object value);
+
+        ChannelHealth GetHealth();
+        bool TryReadTag<T>(string tagName, out T value, out string? error);
+        Dictionary<string, TagValue> ReadTagsWithQuality(IEnumerable<string> tagNames);
+    }
+
+    /// <summary>
+    /// Kanal sağlık bilgisi – izleme/log/diagnostics için.
+    /// </summary>
+    public sealed class ChannelHealth
+    {
+        public bool IsConnected { get; set; }
+        public DateTimeOffset LastOkUtc { get; set; }
+        public string? LastErrorMessage { get; set; }
+
+        // --- Eklenen alanlar ---
+        public DateTimeOffset? StartTimeUtc { get; set; }       // İlk başarılı bağlanma zamanı
+        public double UptimeSeconds { get; set; }               // İlk başarılı bağlanmadan beri geçen süre (sn)
+        public long ReconnectCount { get; set; }                // Başlangıçtan beri yeniden bağlanma sayısı
+        public DateTimeOffset? LastReconnectUtc { get; set; }   // Son reconnect zamanı
+    }
+
+    /// <summary>
+    /// Değer + Kalite + Zaman damgası (UI, trend, alarm için standart paket).
+    /// </summary>
+    public sealed class TagValue
+    {
+        public object? Value { get; set; }
+        public string Quality { get; set; } = "Good"; // "Good" | "Bad" | "Uncertain"
+        public DateTimeOffset TimestampUtc { get; set; } = DateTimeOffset.UtcNow;
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\ReadResult.cs
+==================================================
+
+using System;
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Okuma işlemi sonucu: Değer + kalite + zaman + hata metni (varsa).
+    /// UI veya üst katmanlar için tek tip dönüş.
+    /// </summary>
+    public sealed class ReadResult<T>
+    {
+        public T? Value { get; set; }
+        public TagQuality Quality { get; set; } = TagQuality.Bad;
+        public DateTime TimestampUtc { get; set; } = DateTime.UtcNow;
+        public string? Error { get; set; }
+        public bool IsOk => Quality == TagQuality.Good && Error == null;
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\ResilientCommunicationChannelDecorator.cs
+==================================================
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Herhangi bir ICommunicationChannel'ı sarar; basit retry uygular.
+    /// (Zaman aşımı/yüksek dayanıklılık gerektiğinde devreye alınır.)
+    /// </summary>
+    public sealed class ResilientCommunicationChannelDecorator : ICommunicationChannel
+    {
+        private readonly ICommunicationChannel _inner;
+        private readonly int _maxRetry;
+        private readonly int _delayMs;
+
+        /// <param name="inner">Sarmalanacak asıl kanal</param>
+        /// <param name="maxRetry">Başarısızlıkta tekrar sayısı (başlangıç denemesine ek olarak)</param>
+        /// <param name="retryDelayMs">Tekrarlar arası bekleme (ms)</param>
+        public ResilientCommunicationChannelDecorator(ICommunicationChannel inner, int maxRetry = 1, int retryDelayMs = 100)
+        {
+            _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _maxRetry = Math.Max(0, maxRetry);
+            _delayMs = Math.Max(0, retryDelayMs);
+        }
+
+        public bool Connect() => ExecuteWithRetry(_inner.Connect);
+
+        public void Disconnect() => _inner.Disconnect();
+
+        public bool IsConnected => _inner.IsConnected;
+
+        public void AddTag(TagDefinition tag) => _inner.AddTag(tag);
+
+        public bool RemoveTag(string tagName) => _inner.RemoveTag(tagName);
+
+        public T ReadTag<T>(string tagName) => ExecuteWithRetry(() => _inner.ReadTag<T>(tagName));
+
+        public Dictionary<string, object> ReadTags(IEnumerable<string> tagNames) =>
+            ExecuteWithRetry(() => _inner.ReadTags(tagNames));
+
+        public bool WriteTag(string tagName, object value) =>
+            ExecuteWithRetry(() => _inner.WriteTag(tagName, value));
+
+        public ChannelHealth GetHealth() =>
+            ExecuteWithRetry(() => _inner.GetHealth());
+
+        public bool TryReadTag<T>(string tagName, out T value, out string? error)
+        {
+            // Try-pattern: hata fırlatma yok, yine de  retry faydalı olabilir.
+            int attempts = 0;
+            while (true)
+            {
+                if (_inner.TryReadTag(tagName, out value, out error))
+                    return true;
+
+                attempts++;
+                if (attempts > _maxRetry) return false;
+                Thread.Sleep(_delayMs);
+            }
+        }
+
+        public Dictionary<string, TagValue> ReadTagsWithQuality(IEnumerable<string> tagNames) =>
+            ExecuteWithRetry(() => _inner.ReadTagsWithQuality(tagNames));
+
+        public void Dispose()
+        {
+            try { _inner.Dispose(); } catch { /* yut */ }
+        }
+
+        // ----------------- Yardımcı -----------------
+        private T ExecuteWithRetry<T>(Func<T> op)
+        {
+            int attempts = 0;
+            Exception? last = null;
+            while (true)
+            {
+                try { return op(); }
+                catch (Exception ex)
+                {
+                    last = ex;
+                    attempts++;
+                    if (attempts > _maxRetry) throw last;
+                    Thread.Sleep(_delayMs);
+                }
+            }
+        }
+
+        private bool ExecuteWithRetry(Func<bool> op)
+        {
+            return ExecuteWithRetry(() =>
+            {
+                bool ok = op();
+                if (!ok) throw new Exception("Operation returned false.");
+                return true;
+            });
+        }
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\TagDefinition.cs
+==================================================
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// PLC üzerinde okunacak/yazılacak bir tag’in temel tanımı.
+    /// </summary>
+    public class TagDefinition
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        /// <summary> Örn. "DataBlock", "Memory", "Input", "Output" </summary>
+        public string DataType { get; set; } = string.Empty;
+        /// <summary> Örn. "Bit", "Word", "Real" vb. </summary>
+        public string VarType { get; set; } = string.Empty;
+        public int Count { get; set; } = 1;
+        public string ConnectionName { get; set; } = string.Empty;
+        /// <summary> Eğer struct ise .NET tipi adı (tam isim) </summary>
+        public string StructType { get; set; } = string.Empty;
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\TagQuality.cs
+==================================================
+
+using System;
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Bir okuma/yazma işleminin kalite durumunu belirtir.
+    /// </summary>
+    public enum TagQuality
+    {
+        Good = 0,
+        Uncertain = 1,
+        Bad = 2
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Communication\WriteResult.cs
+==================================================
+
+using System;
+
+namespace MyWeb.Core.Communication
+{
+    /// <summary>
+    /// Yazma işlemi sonucu: başarılı mı + kalite (Good/Bad) + hata metni (varsa).
+    /// </summary>
+    public sealed class WriteResult
+    {
+        public bool Success { get; set; }
+        public TagQuality Quality { get; set; } = TagQuality.Bad;
+        public string? Error { get; set; }
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Hist\ArchiveMode.cs
+==================================================
+
+namespace MyWeb.Core.Hist
+{
+    /// <summary>
+    /// Arşiv yazma politikası (tag bazında konfigürasyon).
+    /// </summary>
+    public enum ArchiveMode : byte
+    {
+        Always = 0, // Her taramada yaz
+        ChangeOnly = 1, // Sadece değişince yaz
+        Deadband = 2  // Değişim eşiği (abs/%)
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Hist\DataType.cs
+==================================================
+
+namespace MyWeb.Core.Hist
+{
+    /// <summary>
+    /// Zaman-serisi veri tipleri.
+    /// SQL tarafında byte (TINYINT) olarak saklayacağız.
+    /// </summary>
+    public enum DataType : byte
+    {
+        Bool = 0,
+        Int = 1,
+        Float = 2,
+        String = 3,
+        Date = 4
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\History\SamplePoint.cs
+==================================================
+
+using System;
+using System.Collections.Generic;
+
+namespace MyWeb.Core.History
+{
+    /// <summary>Historian’a yazılacak tek bir örnek (sample) satırı.</summary>
+    public sealed class SamplePoint
+    {
+        /// <summary>Örnekleme zamanı (UTC).</summary>
+        public DateTime Utc { get; init; }
+
+        /// <summary>Tag adı (örn: tBool).</summary>
+        public string Tag { get; init; } = string.Empty;
+
+        /// <summary>Değerin string temsili. (Basitlik için nvarchar olarak saklıyoruz.)</summary>
+        public string? Value { get; init; }
+
+        /// <summary>Kalite (örn: Good/Bad).</summary>
+        public string Quality { get; init; } = "Good";
+    }
+
+    /// <summary>Sampling verilerini historian’a yazmak için kuyruk arayüzü.</summary>
+    public interface IHistoryWriter
+    {
+        void Enqueue(IEnumerable<SamplePoint> items);
+        void Enqueue(SamplePoint item);
+    }
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\MyWeb.Core.csproj
+==================================================
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Debug\net9.0\.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+==================================================
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v9.0", FrameworkDisplayName = ".NET 9.0")]
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Debug\net9.0\MyWeb.Core.AssemblyInfo.cs
+==================================================
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("MyWeb.Core")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4b1fdbd130d92cc982d3d9eb8ff5d2499b9caa00")]
+[assembly: System.Reflection.AssemblyProductAttribute("MyWeb.Core")]
+[assembly: System.Reflection.AssemblyTitleAttribute("MyWeb.Core")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Debug\net9.0\MyWeb.Core.GlobalUsings.g.cs
+==================================================
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Debug\net9.0\MyWeb.Core.sourcelink.json
+==================================================
+
+{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/4b1fdbd130d92cc982d3d9eb8ff5d2499b9caa00/*"}}
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\MyWeb.Core.csproj.nuget.dgspec.json
+==================================================
+
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj",
+        "projectName": "MyWeb.Core",
+        "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\project.assets.json
+==================================================
+
+{
+  "version": 3,
+  "targets": {
+    "net9.0": {}
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "net9.0": []
+  },
+  "packageFolders": {
+    "C:\\Users\\User\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj",
+      "projectName": "MyWeb.Core",
+      "projectPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\MyWeb.Core.csproj",
+      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\src\\Core\\MyWeb.Core\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net9.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
+    },
+    "frameworks": {
+      "net9.0": {
+        "targetAlias": "net9.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Release\net9.0\.NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+==================================================
+
+// <autogenerated />
+using System;
+using System.Reflection;
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute(".NETCoreApp,Version=v9.0", FrameworkDisplayName = ".NET 9.0")]
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Release\net9.0\MyWeb.Core.AssemblyInfo.cs
+==================================================
+
+//------------------------------------------------------------------------------
+// <auto-generated>
+//     This code was generated by a tool.
+//
+//     Changes to this file may cause incorrect behavior and will be lost if
+//     the code is regenerated.
+// </auto-generated>
+//------------------------------------------------------------------------------
+
+using System;
+using System.Reflection;
+
+[assembly: System.Reflection.AssemblyCompanyAttribute("MyWeb.Core")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+91d774e62e4d7dad5671e4462510dd4f28d76c74")]
+[assembly: System.Reflection.AssemblyProductAttribute("MyWeb.Core")]
+[assembly: System.Reflection.AssemblyTitleAttribute("MyWeb.Core")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+// Generated by the MSBuild WriteCodeFragment class.
+
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Release\net9.0\MyWeb.Core.GlobalUsings.g.cs
+==================================================
+
+// <auto-generated/>
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\obj\Release\net9.0\MyWeb.Core.sourcelink.json
+==================================================
+
+{"documents":{"C:\\Users\\User\\Desktop\\Proje\\MyWeb\\*":"https://raw.githubusercontent.com/mtugur/MyWeb/91d774e62e4d7dad5671e4462510dd4f28d76c74/*"}}
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Runtime\Health\HealthStatus.cs
+==================================================
+
+namespace MyWeb.Core.Runtime.Health;
+
+/// <summary>
+/// Basit çalışma sağlık durumu.
+/// </summary>
+public enum HealthStatus
+{
+    Healthy = 0,
+    Degraded = 1,
+    Unhealthy = 2
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Runtime\Health\IRuntimeHealthProvider.cs
+==================================================
+
+namespace MyWeb.Core.Runtime.Health;
+
+/// <summary>
+/// Uygulama çalışma zamanı sağlık bilgisi sağlayıcısı.
+/// Controller veya UI buradan okur.
+/// </summary>
+public interface IRuntimeHealthProvider
+{
+    RuntimeHealthSnapshot GetSnapshot();
+    void ReportGoodSample();              // son iyi örnek (ör. okuma) oldu
+    void ReportError();                   // ardışık hata say
+    void ResetErrors();                   // toparlanınca sıfırla
+    void SetStatus(HealthStatus status, string? message = null);
+}
+
+
+==================================================
+Dosya: src\Core\MyWeb.Core\Runtime\Health\RuntimeHealthSnapshot.cs
+==================================================
+
+using System;
+
+namespace MyWeb.Core.Runtime.Health;
+
+/// <summary>
+/// Runtime sağlık durumunun anlık özet verisi.
+/// </summary>
+public sealed class RuntimeHealthSnapshot
+{
+    public DateTime UtcNow { get; init; } = DateTime.UtcNow;
+
+    /// <summary>Genel sağlık.</summary>
+    public HealthStatus Status { get; init; } = HealthStatus.Healthy;
+
+    /// <summary>Son başarılı veri alma (okuma) zamanı (UTC). Opsiyonel.</summary>
+    public DateTime? LastGoodSampleUtc { get; init; }
+
+    /// <summary>Ardışık hata sayısı.</summary>
+    public int ConsecutiveErrors { get; init; }
+
+    /// <summary>Bilgi amaçlı mesaj.</summary>
+    public string? Message { get; init; }
+}
+

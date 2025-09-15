@@ -1,0 +1,1310 @@
+﻿PROJE OZETI - 2025-09-15 15:46:12
+------------------------------------------------------------
+AmaÃ§: PLC verisini okuma â†’ arÅŸivleme â†’ sorgu â†’ trend UI.
+Katmanlar: Core, Infrastructure(Persistence), Modules(Comm), Runtime, WebApp.
+DB: SQL Server (MyWeb), Åžemalar: catalog, hist.
+Ana URL: http://localhost:5113  | Swagger: /swagger
+
+
+--- KLASOR AGACI ---
+
+Folder PATH listing
+Volume serial number is EAE4-C23B
+C:.
+|   .gitattributes
+|   .gitignore
+|   MyWeb.sln
+|   proje_ ”zeti.txt
+|   README.md
+|   sqlquery.pdf
+|   
++---.github
+|   \---workflows
++---docs
+|       SMOKE_TEST.md
+|       
++---scripts
+|   |   emit-project-files.ps1
+|   |   make-demo-pkg.ps1
+|   |   Save-StateAndPush.ps1
+|   |   
+|   \---_packages
+|       |   demo.mywebpkg
+|       |   
+|       \---demo
+|           |   manifest.json
+|           |   
+|           \---config
+|                   controllers.json
+|                   tags.json
+|                   
++---src
+|   +---Core
+|   |   \---MyWeb.Core
+|   |       |   Class1.cs
+|   |       |   MyWeb.Core.csproj
+|   |       |   
+|   |       +---bin
+|   |       |   +---Debug
+|   |       |   |   \---net9.0
+|   |       |   |           MyWeb.Core.deps.json
+|   |       |   |           MyWeb.Core.dll
+|   |       |   |           MyWeb.Core.pdb
+|   |       |   |           
+|   |       |   \---Release
+|   |       |       \---net9.0
+|   |       |               MyWeb.Core.deps.json
+|   |       |               MyWeb.Core.dll
+|   |       |               MyWeb.Core.pdb
+|   |       |               
+|   |       +---Communication
+|   |       |       ChannelState.cs
+|   |       |       CommunicationOptions.cs
+|   |       |       ICommunicationChannel.cs
+|   |       |       ReadResult.cs
+|   |       |       ResilientCommunicationChannelDecorator.cs
+|   |       |       TagDefinition.cs
+|   |       |       TagQuality.cs
+|   |       |       WriteResult.cs
+|   |       |       
+|   |       +---Hist
+|   |       |       ArchiveMode.cs
+|   |       |       DataType.cs
+|   |       |       
+|   |       +---History
+|   |       |       SamplePoint.cs
+|   |       |       
+|   |       +---obj
+|   |       |   |   MyWeb.Core.csproj.nuget.dgspec.json
+|   |       |   |   MyWeb.Core.csproj.nuget.g.props
+|   |       |   |   MyWeb.Core.csproj.nuget.g.targets
+|   |       |   |   project.assets.json
+|   |       |   |   project.nuget.cache
+|   |       |   |   
+|   |       |   +---Debug
+|   |       |   |   \---net9.0
+|   |       |   |       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |       |   |       |   MyWeb.Core.AssemblyInfo.cs
+|   |       |   |       |   MyWeb.Core.AssemblyInfoInputs.cache
+|   |       |   |       |   MyWeb.Core.assets.cache
+|   |       |   |       |   MyWeb.Core.csproj.CoreCompileInputs.cache
+|   |       |   |       |   MyWeb.Core.csproj.FileListAbsolute.txt
+|   |       |   |       |   MyWeb.Core.dll
+|   |       |   |       |   MyWeb.Core.GeneratedMSBuildEditorConfig.editorconfig
+|   |       |   |       |   MyWeb.Core.GlobalUsings.g.cs
+|   |       |   |       |   MyWeb.Core.pdb
+|   |       |   |       |   MyWeb.Core.sourcelink.json
+|   |       |   |       |   
+|   |       |   |       +---ref
+|   |       |   |       |       MyWeb.Core.dll
+|   |       |   |       |       
+|   |       |   |       \---refint
+|   |       |   |               MyWeb.Core.dll
+|   |       |   |               
+|   |       |   \---Release
+|   |       |       \---net9.0
+|   |       |           |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |       |           |   MyWeb.Core.AssemblyInfo.cs
+|   |       |           |   MyWeb.Core.AssemblyInfoInputs.cache
+|   |       |           |   MyWeb.Core.assets.cache
+|   |       |           |   MyWeb.Core.csproj.CoreCompileInputs.cache
+|   |       |           |   MyWeb.Core.csproj.FileListAbsolute.txt
+|   |       |           |   MyWeb.Core.dll
+|   |       |           |   MyWeb.Core.GeneratedMSBuildEditorConfig.editorconfig
+|   |       |           |   MyWeb.Core.GlobalUsings.g.cs
+|   |       |           |   MyWeb.Core.pdb
+|   |       |           |   MyWeb.Core.sourcelink.json
+|   |       |           |   
+|   |       |           +---ref
+|   |       |           |       MyWeb.Core.dll
+|   |       |           |       
+|   |       |           \---refint
+|   |       |                   MyWeb.Core.dll
+|   |       |                   
+|   |       \---Runtime
+|   |           \---Health
+|   |                   HealthStatus.cs
+|   |                   IRuntimeHealthProvider.cs
+|   |                   RuntimeHealthSnapshot.cs
+|   |                   
+|   +---Infrastructure
+|   |   \---MyWeb.Infrastructure.Data
+|   |       |   Class1.cs
+|   |       |   MyWeb.Persistence.csproj
+|   |       |   
+|   |       +---bin
+|   |       |   +---Debug
+|   |       |   |   \---net9.0
+|   |       |   |           MyWeb.Core.dll
+|   |       |   |           MyWeb.Core.pdb
+|   |       |   |           MyWeb.Persistence.deps.json
+|   |       |   |           MyWeb.Persistence.dll
+|   |       |   |           MyWeb.Persistence.pdb
+|   |       |   |           MyWeb.Persistence.runtimeconfig.json
+|   |       |   |           
+|   |       |   \---Release
+|   |       |       \---net9.0
+|   |       |               MyWeb.Core.dll
+|   |       |               MyWeb.Core.pdb
+|   |       |               MyWeb.Persistence.deps.json
+|   |       |               MyWeb.Persistence.dll
+|   |       |               MyWeb.Persistence.pdb
+|   |       |               MyWeb.Persistence.runtimeconfig.json
+|   |       |               
+|   |       +---Catalog
+|   |       |   |   CatalogDbContext.cs
+|   |       |   |   
+|   |       |   \---Entities
+|   |       |           Controller.cs
+|   |       |           Project.cs
+|   |       |           ProjectVersion.cs
+|   |       |           Tag.cs
+|   |       |           TagArchiveConfig.cs
+|   |       |           
+|   |       +---Common
+|   |       |       UtcDateTimeConverter.cs
+|   |       |       
+|   |       +---Historian
+|   |       |   |   HistorianDbContext.cs
+|   |       |   |   
+|   |       |   \---Entities
+|   |       |           Sample.cs
+|   |       |           
+|   |       +---Migrations
+|   |       |   +---Catalog
+|   |       |   |       20250812134653_InitialCatalog.cs
+|   |       |   |       20250812134653_InitialCatalog.Designer.cs
+|   |       |   |       CatalogDbContextModelSnapshot.cs
+|   |       |   |       
+|   |       |   \---Historian
+|   |       |           20250812134700_InitialHistorian.cs
+|   |       |           20250812134700_InitialHistorian.Designer.cs
+|   |       |           HistorianDbContextModelSnapshot.cs
+|   |       |           
+|   |       \---obj
+|   |           |   MyWeb.Persistence.csproj.nuget.dgspec.json
+|   |           |   MyWeb.Persistence.csproj.nuget.g.props
+|   |           |   MyWeb.Persistence.csproj.nuget.g.targets
+|   |           |   project.assets.json
+|   |           |   project.nuget.cache
+|   |           |   
+|   |           +---Debug
+|   |           |   \---net9.0
+|   |           |       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |           |       |   MyWeb.Pe.55188E15.Up2Date
+|   |           |       |   MyWeb.Persistence.AssemblyInfo.cs
+|   |           |       |   MyWeb.Persistence.AssemblyInfoInputs.cache
+|   |           |       |   MyWeb.Persistence.assets.cache
+|   |           |       |   MyWeb.Persistence.csproj.AssemblyReference.cache
+|   |           |       |   MyWeb.Persistence.csproj.CoreCompileInputs.cache
+|   |           |       |   MyWeb.Persistence.csproj.FileListAbsolute.txt
+|   |           |       |   MyWeb.Persistence.dll
+|   |           |       |   MyWeb.Persistence.GeneratedMSBuildEditorConfig.editorconfig
+|   |           |       |   MyWeb.Persistence.genruntimeconfig.cache
+|   |           |       |   MyWeb.Persistence.GlobalUsings.g.cs
+|   |           |       |   MyWeb.Persistence.pdb
+|   |           |       |   MyWeb.Persistence.sourcelink.json
+|   |           |       |   
+|   |           |       +---ref
+|   |           |       |       MyWeb.Persistence.dll
+|   |           |       |       
+|   |           |       \---refint
+|   |           |               MyWeb.Persistence.dll
+|   |           |               
+|   |           \---Release
+|   |               \---net9.0
+|   |                   |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |                   |   MyWeb.Pe.55188E15.Up2Date
+|   |                   |   MyWeb.Persistence.AssemblyInfo.cs
+|   |                   |   MyWeb.Persistence.AssemblyInfoInputs.cache
+|   |                   |   MyWeb.Persistence.assets.cache
+|   |                   |   MyWeb.Persistence.csproj.AssemblyReference.cache
+|   |                   |   MyWeb.Persistence.csproj.CoreCompileInputs.cache
+|   |                   |   MyWeb.Persistence.csproj.FileListAbsolute.txt
+|   |                   |   MyWeb.Persistence.dll
+|   |                   |   MyWeb.Persistence.GeneratedMSBuildEditorConfig.editorconfig
+|   |                   |   MyWeb.Persistence.genruntimeconfig.cache
+|   |                   |   MyWeb.Persistence.GlobalUsings.g.cs
+|   |                   |   MyWeb.Persistence.pdb
+|   |                   |   MyWeb.Persistence.sourcelink.json
+|   |                   |   
+|   |                   +---ref
+|   |                   |       MyWeb.Persistence.dll
+|   |                   |       
+|   |                   \---refint
+|   |                           MyWeb.Persistence.dll
+|   |                           
+|   +---Modules
+|   |   \---Communication.Siemens
+|   |       \---MyWeb.Communication.Siemens
+|   |           |   Class1.cs
+|   |           |   MyWeb.Communication.Siemens.csproj
+|   |           |   PlcConnectionSettings.cs
+|   |           |   S7StringEncoding.cs
+|   |           |   SiemensCommunicationChannel.cs
+|   |           |   
+|   |           +---bin
+|   |           |   +---Debug
+|   |           |   |   \---net9.0
+|   |           |   |           MyWeb.Communication.Siemens.deps.json
+|   |           |   |           MyWeb.Communication.Siemens.dll
+|   |           |   |           MyWeb.Communication.Siemens.pdb
+|   |           |   |           MyWeb.Core.dll
+|   |           |   |           MyWeb.Core.pdb
+|   |           |   |           
+|   |           |   \---Release
+|   |           |       \---net9.0
+|   |           |               MyWeb.Communication.Siemens.deps.json
+|   |           |               MyWeb.Communication.Siemens.dll
+|   |           |               MyWeb.Communication.Siemens.pdb
+|   |           |               MyWeb.Core.dll
+|   |           |               MyWeb.Core.pdb
+|   |           |               
+|   |           \---obj
+|   |               |   MyWeb.Communication.Siemens.csproj.nuget.dgspec.json
+|   |               |   MyWeb.Communication.Siemens.csproj.nuget.g.props
+|   |               |   MyWeb.Communication.Siemens.csproj.nuget.g.targets
+|   |               |   project.assets.json
+|   |               |   project.nuget.cache
+|   |               |   
+|   |               +---Debug
+|   |               |   \---net9.0
+|   |               |       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |               |       |   MyWeb.Co.536DCC15.Up2Date
+|   |               |       |   MyWeb.Communication.Siemens.AssemblyInfo.cs
+|   |               |       |   MyWeb.Communication.Siemens.AssemblyInfoInputs.cache
+|   |               |       |   MyWeb.Communication.Siemens.assets.cache
+|   |               |       |   MyWeb.Communication.Siemens.csproj.AssemblyReference.cache
+|   |               |       |   MyWeb.Communication.Siemens.csproj.CoreCompileInputs.cache
+|   |               |       |   MyWeb.Communication.Siemens.csproj.FileListAbsolute.txt
+|   |               |       |   MyWeb.Communication.Siemens.dll
+|   |               |       |   MyWeb.Communication.Siemens.GeneratedMSBuildEditorConfig.editorconfig
+|   |               |       |   MyWeb.Communication.Siemens.GlobalUsings.g.cs
+|   |               |       |   MyWeb.Communication.Siemens.pdb
+|   |               |       |   MyWeb.Communication.Siemens.sourcelink.json
+|   |               |       |   
+|   |               |       +---ref
+|   |               |       |       MyWeb.Communication.Siemens.dll
+|   |               |       |       
+|   |               |       \---refint
+|   |               |               MyWeb.Communication.Siemens.dll
+|   |               |               
+|   |               \---Release
+|   |                   \---net9.0
+|   |                       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |                       |   MyWeb.Co.536DCC15.Up2Date
+|   |                       |   MyWeb.Communication.Siemens.AssemblyInfo.cs
+|   |                       |   MyWeb.Communication.Siemens.AssemblyInfoInputs.cache
+|   |                       |   MyWeb.Communication.Siemens.assets.cache
+|   |                       |   MyWeb.Communication.Siemens.csproj.AssemblyReference.cache
+|   |                       |   MyWeb.Communication.Siemens.csproj.CoreCompileInputs.cache
+|   |                       |   MyWeb.Communication.Siemens.csproj.FileListAbsolute.txt
+|   |                       |   MyWeb.Communication.Siemens.dll
+|   |                       |   MyWeb.Communication.Siemens.GeneratedMSBuildEditorConfig.editorconfig
+|   |                       |   MyWeb.Communication.Siemens.GlobalUsings.g.cs
+|   |                       |   MyWeb.Communication.Siemens.pdb
+|   |                       |   MyWeb.Communication.Siemens.sourcelink.json
+|   |                       |   
+|   |                       +---ref
+|   |                       |       MyWeb.Communication.Siemens.dll
+|   |                       |       
+|   |                       \---refint
+|   |                               MyWeb.Communication.Siemens.dll
+|   |                               
+|   +---Runtime
+|   |   \---MyWeb.Runtime
+|   |       |   Class1.cs
+|   |       |   DbConnOptions.cs
+|   |       |   HistoryOptions.cs
+|   |       |   MyWeb.Runtime.csproj
+|   |       |   RuntimeHealthProvider.cs
+|   |       |   RuntimeOptions.cs
+|   |       |   SamplingOptions.cs
+|   |       |   ServiceCollectionExtensions.cs
+|   |       |   
+|   |       +---bin
+|   |       |   +---Debug
+|   |       |   |   \---net9.0
+|   |       |   |           MyWeb.Core.dll
+|   |       |   |           MyWeb.Core.pdb
+|   |       |   |           MyWeb.Persistence.dll
+|   |       |   |           MyWeb.Persistence.pdb
+|   |       |   |           MyWeb.Runtime.deps.json
+|   |       |   |           MyWeb.Runtime.dll
+|   |       |   |           MyWeb.Runtime.pdb
+|   |       |   |           
+|   |       |   \---Release
+|   |       |       \---net9.0
+|   |       |               MyWeb.Core.dll
+|   |       |               MyWeb.Core.pdb
+|   |       |               MyWeb.Persistence.dll
+|   |       |               MyWeb.Persistence.pdb
+|   |       |               MyWeb.Runtime.deps.json
+|   |       |               MyWeb.Runtime.dll
+|   |       |               MyWeb.Runtime.pdb
+|   |       |               
+|   |       +---History
+|   |       |       HistoryWriterOptions.cs
+|   |       |       HistoryWriterService.cs
+|   |       |       SampleWriteRow.cs
+|   |       |       
+|   |       +---obj
+|   |       |   |   MyWeb.Runtime.csproj.nuget.dgspec.json
+|   |       |   |   MyWeb.Runtime.csproj.nuget.g.props
+|   |       |   |   MyWeb.Runtime.csproj.nuget.g.targets
+|   |       |   |   project.assets.json
+|   |       |   |   project.nuget.cache
+|   |       |   |   
+|   |       |   +---Debug
+|   |       |   |   \---net9.0
+|   |       |   |       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |       |   |       |   MyWeb.Ru.5ECF0D57.Up2Date
+|   |       |   |       |   MyWeb.Runtime.AssemblyInfo.cs
+|   |       |   |       |   MyWeb.Runtime.AssemblyInfoInputs.cache
+|   |       |   |       |   MyWeb.Runtime.assets.cache
+|   |       |   |       |   MyWeb.Runtime.csproj.AssemblyReference.cache
+|   |       |   |       |   MyWeb.Runtime.csproj.CoreCompileInputs.cache
+|   |       |   |       |   MyWeb.Runtime.csproj.FileListAbsolute.txt
+|   |       |   |       |   MyWeb.Runtime.dll
+|   |       |   |       |   MyWeb.Runtime.GeneratedMSBuildEditorConfig.editorconfig
+|   |       |   |       |   MyWeb.Runtime.GlobalUsings.g.cs
+|   |       |   |       |   MyWeb.Runtime.pdb
+|   |       |   |       |   MyWeb.Runtime.sourcelink.json
+|   |       |   |       |   
+|   |       |   |       +---ref
+|   |       |   |       |       MyWeb.Runtime.dll
+|   |       |   |       |       
+|   |       |   |       \---refint
+|   |       |   |               MyWeb.Runtime.dll
+|   |       |   |               
+|   |       |   \---Release
+|   |       |       \---net9.0
+|   |       |           |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|   |       |           |   MyWeb.Ru.5ECF0D57.Up2Date
+|   |       |           |   MyWeb.Runtime.AssemblyInfo.cs
+|   |       |           |   MyWeb.Runtime.AssemblyInfoInputs.cache
+|   |       |           |   MyWeb.Runtime.assets.cache
+|   |       |           |   MyWeb.Runtime.csproj.AssemblyReference.cache
+|   |       |           |   MyWeb.Runtime.csproj.CoreCompileInputs.cache
+|   |       |           |   MyWeb.Runtime.csproj.FileListAbsolute.txt
+|   |       |           |   MyWeb.Runtime.dll
+|   |       |           |   MyWeb.Runtime.GeneratedMSBuildEditorConfig.editorconfig
+|   |       |           |   MyWeb.Runtime.GlobalUsings.g.cs
+|   |       |           |   MyWeb.Runtime.pdb
+|   |       |           |   MyWeb.Runtime.sourcelink.json
+|   |       |           |   
+|   |       |           +---ref
+|   |       |           |       MyWeb.Runtime.dll
+|   |       |           |       
+|   |       |           \---refint
+|   |       |                   MyWeb.Runtime.dll
+|   |       |                   
+|   |       +---Options
+|   |       |       BootstrapOptions.cs
+|   |       |       
+|   |       +---Packaging
+|   |       |       IPackageLoader.cs
+|   |       |       PackageModels.cs
+|   |       |       ZipPackageLoader.cs
+|   |       |       
+|   |       +---Services
+|   |       |       NullHistoryWriter.cs
+|   |       |       PlcConnectionWatchdog.cs
+|   |       |       RetentionCleanerService.cs
+|   |       |       TagSamplingService.cs
+|   |       |       
+|   |       \---Snapshot
+|   |               BootstrapHostedService.cs
+|   |               BootstrapRunner.cs
+|   |               CatalogSnapshotService.cs
+|   |               TagSnapshotService.cs
+|   |               
+|   \---WebApp
+|       \---MyWeb.WebApp
+|           |   appsettings.Development.json
+|           |   appsettings.json
+|           |   MyWeb.WebApp.csproj
+|           |   MyWeb.WebApp.csproj.user
+|           |   Program.cs
+|           |   
+|           +---bin
+|           |   +---Debug
+|           |   |   \---net9.0
+|           |   |       |   appsettings.Development.json
+|           |   |       |   appsettings.json
+|           |   |       |   Azure.Core.dll
+|           |   |       |   Azure.Identity.dll
+|           |   |       |   Humanizer.dll
+|           |   |       |   Microsoft.Bcl.AsyncInterfaces.dll
+|           |   |       |   Microsoft.Build.Locator.dll
+|           |   |       |   Microsoft.CodeAnalysis.CSharp.dll
+|           |   |       |   Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+|           |   |       |   Microsoft.CodeAnalysis.dll
+|           |   |       |   Microsoft.CodeAnalysis.Workspaces.dll
+|           |   |       |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+|           |   |       |   Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+|           |   |       |   Microsoft.Data.SqlClient.dll
+|           |   |       |   Microsoft.EntityFrameworkCore.Abstractions.dll
+|           |   |       |   Microsoft.EntityFrameworkCore.Design.dll
+|           |   |       |   Microsoft.EntityFrameworkCore.dll
+|           |   |       |   Microsoft.EntityFrameworkCore.Relational.dll
+|           |   |       |   Microsoft.EntityFrameworkCore.SqlServer.dll
+|           |   |       |   Microsoft.Extensions.Caching.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.Caching.Memory.dll
+|           |   |       |   Microsoft.Extensions.Configuration.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.Configuration.Binder.dll
+|           |   |       |   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.DependencyInjection.dll
+|           |   |       |   Microsoft.Extensions.DependencyModel.dll
+|           |   |       |   Microsoft.Extensions.Diagnostics.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.FileProviders.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.Hosting.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.Logging.Abstractions.dll
+|           |   |       |   Microsoft.Extensions.Logging.dll
+|           |   |       |   Microsoft.Extensions.Options.ConfigurationExtensions.dll
+|           |   |       |   Microsoft.Extensions.Options.dll
+|           |   |       |   Microsoft.Extensions.Primitives.dll
+|           |   |       |   Microsoft.Identity.Client.dll
+|           |   |       |   Microsoft.Identity.Client.Extensions.Msal.dll
+|           |   |       |   Microsoft.IdentityModel.Abstractions.dll
+|           |   |       |   Microsoft.IdentityModel.JsonWebTokens.dll
+|           |   |       |   Microsoft.IdentityModel.Logging.dll
+|           |   |       |   Microsoft.IdentityModel.Protocols.dll
+|           |   |       |   Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+|           |   |       |   Microsoft.IdentityModel.Tokens.dll
+|           |   |       |   Microsoft.OpenApi.dll
+|           |   |       |   Microsoft.SqlServer.Server.dll
+|           |   |       |   Mono.TextTemplating.dll
+|           |   |       |   MyWeb.Communication.Siemens.dll
+|           |   |       |   MyWeb.Communication.Siemens.pdb
+|           |   |       |   MyWeb.Core.dll
+|           |   |       |   MyWeb.Core.pdb
+|           |   |       |   MyWeb.Persistence.dll
+|           |   |       |   MyWeb.Persistence.pdb
+|           |   |       |   MyWeb.Runtime.dll
+|           |   |       |   MyWeb.Runtime.pdb
+|           |   |       |   MyWeb.WebApp.deps.json
+|           |   |       |   MyWeb.WebApp.dll
+|           |   |       |   MyWeb.WebApp.exe
+|           |   |       |   MyWeb.WebApp.pdb
+|           |   |       |   MyWeb.WebApp.runtimeconfig.json
+|           |   |       |   MyWeb.WebApp.staticwebassets.endpoints.json
+|           |   |       |   MyWeb.WebApp.staticwebassets.runtime.json
+|           |   |       |   S7.Net.dll
+|           |   |       |   Serilog.AspNetCore.dll
+|           |   |       |   Serilog.dll
+|           |   |       |   Serilog.Extensions.Hosting.dll
+|           |   |       |   Serilog.Extensions.Logging.dll
+|           |   |       |   Serilog.Formatting.Compact.dll
+|           |   |       |   Serilog.Settings.Configuration.dll
+|           |   |       |   Serilog.Sinks.Console.dll
+|           |   |       |   Serilog.Sinks.Debug.dll
+|           |   |       |   Serilog.Sinks.File.dll
+|           |   |       |   Swashbuckle.AspNetCore.Swagger.dll
+|           |   |       |   Swashbuckle.AspNetCore.SwaggerGen.dll
+|           |   |       |   Swashbuckle.AspNetCore.SwaggerUI.dll
+|           |   |       |   System.ClientModel.dll
+|           |   |       |   System.CodeDom.dll
+|           |   |       |   System.Composition.AttributedModel.dll
+|           |   |       |   System.Composition.Convention.dll
+|           |   |       |   System.Composition.Hosting.dll
+|           |   |       |   System.Composition.Runtime.dll
+|           |   |       |   System.Composition.TypedParts.dll
+|           |   |       |   System.Configuration.ConfigurationManager.dll
+|           |   |       |   System.Formats.Asn1.dll
+|           |   |       |   System.IdentityModel.Tokens.Jwt.dll
+|           |   |       |   System.Memory.Data.dll
+|           |   |       |   System.Runtime.Caching.dll
+|           |   |       |   System.Security.Cryptography.ProtectedData.dll
+|           |   |       |   System.Text.Encoding.CodePages.dll
+|           |   |       |   System.Text.Json.dll
+|           |   |       |   
+|           |   |       +---cs
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       
+|           |   |       +---de
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---es
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---fr
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---it
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---ja
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---ko
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---pl
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       
+|           |   |       +---pt-BR
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---ru
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       +---runtimes
+|           |   |       |   +---unix
+|           |   |       |   |   \---lib
+|           |   |       |   |       \---net8.0
+|           |   |       |   |               Microsoft.Data.SqlClient.dll
+|           |   |       |   |               
+|           |   |       |   +---win
+|           |   |       |   |   \---lib
+|           |   |       |   |       +---net8.0
+|           |   |       |   |       |       Microsoft.Data.SqlClient.dll
+|           |   |       |   |       |       System.Runtime.Caching.dll
+|           |   |       |   |       |       
+|           |   |       |   |       \---net9.0
+|           |   |       |   |               System.Text.Encoding.CodePages.dll
+|           |   |       |   |               
+|           |   |       |   +---win-arm
+|           |   |       |   |   \---native
+|           |   |       |   |           Microsoft.Data.SqlClient.SNI.dll
+|           |   |       |   |           
+|           |   |       |   +---win-arm64
+|           |   |       |   |   \---native
+|           |   |       |   |           Microsoft.Data.SqlClient.SNI.dll
+|           |   |       |   |           
+|           |   |       |   +---win-x64
+|           |   |       |   |   \---native
+|           |   |       |   |           Microsoft.Data.SqlClient.SNI.dll
+|           |   |       |   |           
+|           |   |       |   \---win-x86
+|           |   |       |       \---native
+|           |   |       |               Microsoft.Data.SqlClient.SNI.dll
+|           |   |       |               
+|           |   |       +---tr
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       
+|           |   |       +---zh-Hans
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |       |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |       |       Microsoft.Data.SqlClient.resources.dll
+|           |   |       |       
+|           |   |       \---zh-Hant
+|           |   |               Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |   |               Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |   |               Microsoft.CodeAnalysis.resources.dll
+|           |   |               Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |   |               Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |   |               Microsoft.Data.SqlClient.resources.dll
+|           |   |               
+|           |   \---Release
+|           |       \---net9.0
+|           |           |   appsettings.Development.json
+|           |           |   appsettings.json
+|           |           |   Azure.Core.dll
+|           |           |   Azure.Identity.dll
+|           |           |   Humanizer.dll
+|           |           |   Microsoft.Bcl.AsyncInterfaces.dll
+|           |           |   Microsoft.Build.Locator.dll
+|           |           |   Microsoft.CodeAnalysis.CSharp.dll
+|           |           |   Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+|           |           |   Microsoft.CodeAnalysis.dll
+|           |           |   Microsoft.CodeAnalysis.Workspaces.dll
+|           |           |   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+|           |           |   Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+|           |           |   Microsoft.Data.SqlClient.dll
+|           |           |   Microsoft.EntityFrameworkCore.Abstractions.dll
+|           |           |   Microsoft.EntityFrameworkCore.Design.dll
+|           |           |   Microsoft.EntityFrameworkCore.dll
+|           |           |   Microsoft.EntityFrameworkCore.Relational.dll
+|           |           |   Microsoft.EntityFrameworkCore.SqlServer.dll
+|           |           |   Microsoft.Extensions.Caching.Abstractions.dll
+|           |           |   Microsoft.Extensions.Caching.Memory.dll
+|           |           |   Microsoft.Extensions.Configuration.Abstractions.dll
+|           |           |   Microsoft.Extensions.Configuration.Binder.dll
+|           |           |   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+|           |           |   Microsoft.Extensions.DependencyInjection.dll
+|           |           |   Microsoft.Extensions.DependencyModel.dll
+|           |           |   Microsoft.Extensions.Diagnostics.Abstractions.dll
+|           |           |   Microsoft.Extensions.FileProviders.Abstractions.dll
+|           |           |   Microsoft.Extensions.Hosting.Abstractions.dll
+|           |           |   Microsoft.Extensions.Logging.Abstractions.dll
+|           |           |   Microsoft.Extensions.Logging.dll
+|           |           |   Microsoft.Extensions.Options.ConfigurationExtensions.dll
+|           |           |   Microsoft.Extensions.Options.dll
+|           |           |   Microsoft.Extensions.Primitives.dll
+|           |           |   Microsoft.Identity.Client.dll
+|           |           |   Microsoft.Identity.Client.Extensions.Msal.dll
+|           |           |   Microsoft.IdentityModel.Abstractions.dll
+|           |           |   Microsoft.IdentityModel.JsonWebTokens.dll
+|           |           |   Microsoft.IdentityModel.Logging.dll
+|           |           |   Microsoft.IdentityModel.Protocols.dll
+|           |           |   Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+|           |           |   Microsoft.IdentityModel.Tokens.dll
+|           |           |   Microsoft.OpenApi.dll
+|           |           |   Microsoft.SqlServer.Server.dll
+|           |           |   Mono.TextTemplating.dll
+|           |           |   MyWeb.Communication.Siemens.dll
+|           |           |   MyWeb.Communication.Siemens.pdb
+|           |           |   MyWeb.Core.dll
+|           |           |   MyWeb.Core.pdb
+|           |           |   MyWeb.Persistence.dll
+|           |           |   MyWeb.Persistence.pdb
+|           |           |   MyWeb.Runtime.dll
+|           |           |   MyWeb.Runtime.pdb
+|           |           |   MyWeb.WebApp.deps.json
+|           |           |   MyWeb.WebApp.dll
+|           |           |   MyWeb.WebApp.exe
+|           |           |   MyWeb.WebApp.pdb
+|           |           |   MyWeb.WebApp.runtimeconfig.json
+|           |           |   MyWeb.WebApp.staticwebassets.endpoints.json
+|           |           |   MyWeb.WebApp.staticwebassets.runtime.json
+|           |           |   S7.Net.dll
+|           |           |   Serilog.AspNetCore.dll
+|           |           |   Serilog.dll
+|           |           |   Serilog.Extensions.Hosting.dll
+|           |           |   Serilog.Extensions.Logging.dll
+|           |           |   Serilog.Formatting.Compact.dll
+|           |           |   Serilog.Settings.Configuration.dll
+|           |           |   Serilog.Sinks.Console.dll
+|           |           |   Serilog.Sinks.Debug.dll
+|           |           |   Serilog.Sinks.File.dll
+|           |           |   Swashbuckle.AspNetCore.Swagger.dll
+|           |           |   Swashbuckle.AspNetCore.SwaggerGen.dll
+|           |           |   Swashbuckle.AspNetCore.SwaggerUI.dll
+|           |           |   System.ClientModel.dll
+|           |           |   System.CodeDom.dll
+|           |           |   System.Composition.AttributedModel.dll
+|           |           |   System.Composition.Convention.dll
+|           |           |   System.Composition.Hosting.dll
+|           |           |   System.Composition.Runtime.dll
+|           |           |   System.Composition.TypedParts.dll
+|           |           |   System.Configuration.ConfigurationManager.dll
+|           |           |   System.Formats.Asn1.dll
+|           |           |   System.IdentityModel.Tokens.Jwt.dll
+|           |           |   System.Memory.Data.dll
+|           |           |   System.Runtime.Caching.dll
+|           |           |   System.Security.Cryptography.ProtectedData.dll
+|           |           |   System.Text.Encoding.CodePages.dll
+|           |           |   System.Text.Json.dll
+|           |           |   
+|           |           +---cs
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       
+|           |           +---de
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---es
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---fr
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---it
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---ja
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---ko
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---pl
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       
+|           |           +---pt-BR
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---ru
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           +---runtimes
+|           |           |   +---unix
+|           |           |   |   \---lib
+|           |           |   |       \---net8.0
+|           |           |   |               Microsoft.Data.SqlClient.dll
+|           |           |   |               
+|           |           |   +---win
+|           |           |   |   \---lib
+|           |           |   |       +---net8.0
+|           |           |   |       |       Microsoft.Data.SqlClient.dll
+|           |           |   |       |       System.Runtime.Caching.dll
+|           |           |   |       |       
+|           |           |   |       \---net9.0
+|           |           |   |               System.Text.Encoding.CodePages.dll
+|           |           |   |               
+|           |           |   +---win-arm
+|           |           |   |   \---native
+|           |           |   |           Microsoft.Data.SqlClient.SNI.dll
+|           |           |   |           
+|           |           |   +---win-arm64
+|           |           |   |   \---native
+|           |           |   |           Microsoft.Data.SqlClient.SNI.dll
+|           |           |   |           
+|           |           |   +---win-x64
+|           |           |   |   \---native
+|           |           |   |           Microsoft.Data.SqlClient.SNI.dll
+|           |           |   |           
+|           |           |   \---win-x86
+|           |           |       \---native
+|           |           |               Microsoft.Data.SqlClient.SNI.dll
+|           |           |               
+|           |           +---tr
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       
+|           |           +---zh-Hans
+|           |           |       Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |           |       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |           |       Microsoft.CodeAnalysis.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |           |       Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |           |       Microsoft.Data.SqlClient.resources.dll
+|           |           |       
+|           |           \---zh-Hant
+|           |                   Microsoft.CodeAnalysis.CSharp.resources.dll
+|           |                   Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+|           |                   Microsoft.CodeAnalysis.resources.dll
+|           |                   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+|           |                   Microsoft.CodeAnalysis.Workspaces.resources.dll
+|           |                   Microsoft.Data.SqlClient.resources.dll
+|           |                   
+|           +---Controllers
+|           |   |   HistoryUiController.cs
+|           |   |   HomeController.cs
+|           |   |   PlcController.cs
+|           |   |   
+|           |   \---Api
+|           |           DiagnosticsController.cs
+|           |           HistoryController.cs
+|           |           ProjectsController.cs
+|           |           SamplesController.cs
+|           |           TagsController.cs
+|           |           
+|           +---Logs
+|           |       app-20250828_003.log
+|           |       app-20250828_004.log
+|           |       app-20250829.log
+|           |       app-20250829_001.log
+|           |       app-20250829_002.log
+|           |       app-20250829_003.log
+|           |       app-20250829_004.log
+|           |       
+|           +---Models
+|           |       ErrorViewModel.cs
+|           |       
+|           +---obj
+|           |   |   MyWeb.WebApp.csproj.nuget.dgspec.json
+|           |   |   MyWeb.WebApp.csproj.nuget.g.props
+|           |   |   MyWeb.WebApp.csproj.nuget.g.targets
+|           |   |   project.assets.json
+|           |   |   project.nuget.cache
+|           |   |   
+|           |   +---Debug
+|           |   |   \---net9.0
+|           |   |       |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|           |   |       |   apphost.exe
+|           |   |       |   MyWeb.We.FCC469A4.Up2Date
+|           |   |       |   MyWeb.WebApp.AssemblyInfo.cs
+|           |   |       |   MyWeb.WebApp.AssemblyInfoInputs.cache
+|           |   |       |   MyWeb.WebApp.assets.cache
+|           |   |       |   MyWeb.WebApp.csproj.AssemblyReference.cache
+|           |   |       |   MyWeb.WebApp.csproj.CoreCompileInputs.cache
+|           |   |       |   MyWeb.WebApp.csproj.FileListAbsolute.txt
+|           |   |       |   MyWeb.WebApp.dll
+|           |   |       |   MyWeb.WebApp.GeneratedMSBuildEditorConfig.editorconfig
+|           |   |       |   MyWeb.WebApp.genruntimeconfig.cache
+|           |   |       |   MyWeb.WebApp.GlobalUsings.g.cs
+|           |   |       |   MyWeb.WebApp.MvcApplicationPartsAssemblyInfo.cache
+|           |   |       |   MyWeb.WebApp.MvcApplicationPartsAssemblyInfo.cs
+|           |   |       |   MyWeb.WebApp.pdb
+|           |   |       |   MyWeb.WebApp.RazorAssemblyInfo.cache
+|           |   |       |   MyWeb.WebApp.RazorAssemblyInfo.cs
+|           |   |       |   MyWeb.WebApp.sourcelink.json
+|           |   |       |   rbcswa.dswa.cache.json
+|           |   |       |   rjimswa.dswa.cache.json
+|           |   |       |   rjsmcshtml.dswa.cache.json
+|           |   |       |   rjsmrazor.dswa.cache.json
+|           |   |       |   rpswa.dswa.cache.json
+|           |   |       |   staticwebassets.build.endpoints.json
+|           |   |       |   staticwebassets.build.json
+|           |   |       |   staticwebassets.build.json.cache
+|           |   |       |   staticwebassets.development.json
+|           |   |       |   staticwebassets.references.upToDateCheck.txt
+|           |   |       |   staticwebassets.removed.txt
+|           |   |       |   
+|           |   |       +---compressed
+|           |   |       |       2bfsb0cvcb-xvp3kq03qx.gz
+|           |   |       |       34472grz7l-c63t5i9ira.gz
+|           |   |       |       35zd6n0ic9-sejl45xvog.gz
+|           |   |       |       36l67e3tp1-t1cqhe9u97.gz
+|           |   |       |       39d84ywi9k-4094rpi4f9.gz
+|           |   |       |       3ksynrceqz-mrlpezrjn3.gz
+|           |   |       |       4cabao1u8v-mlv21k5csn.gz
+|           |   |       |       4iruudilt7-8vyfqsqgz1.gz
+|           |   |       |       53maqumfje-c2jlpeoesf.gz
+|           |   |       |       5ntch1tj92-22vffe00uq.gz
+|           |   |       |       697kycvlbg-pj5nd1wqec.gz
+|           |   |       |       6tfec5kx69-v0zj4ognzu.gz
+|           |   |       |       6umdofx9u3-ee0r1s7dh0.gz
+|           |   |       |       78nwxf5wlb-hd3gran6i8.gz
+|           |   |       |       7h6td3qnbz-hrwsygsryq.gz
+|           |   |       |       7irzsf0xhd-h1s4sie4z3.gz
+|           |   |       |       927n93b6a0-gk0pw8i4co.gz
+|           |   |       |       a4pz3v92kz-jd9uben2k1.gz
+|           |   |       |       bqnawcz76f-0j3bgjxly4.gz
+|           |   |       |       bui6pvtiw2-aexeepp0ev.gz
+|           |   |       |       d2fi337kwj-rxsg74s51o.gz
+|           |   |       |       dyz38wxq44-9vr69e8ynj.gz
+|           |   |       |       e2xdjiewnf-wl58j5mj3v.gz
+|           |   |       |       egd086d8wg-03hjc8e09r.gz
+|           |   |       |       ev734obzi3-83jwlth58m.gz
+|           |   |       |       fwztehi7or-fvhpjtyr6v.gz
+|           |   |       |       fxi4g372lb-r4e9w2rdcm.gz
+|           |   |       |       gwb7sh9ksp-xtxxf3hu2r.gz
+|           |   |       |       h5mbwtbohc-keugtjm085.gz
+|           |   |       |       h7bnfex0g3-ynyaa8k90p.gz
+|           |   |       |       hg5a6f9ejb-fsbi9cje9m.gz
+|           |   |       |       hu9x9dbxg7-4d85u1mtcx.gz
+|           |   |       |       ipurlb5r10-l2k5pvcc6r.gz
+|           |   |       |       jeru09zudy-48y08845bh.gz
+|           |   |       |       jkf162hh3s-qesaa3a1fm.gz
+|           |   |       |       joxntly8v0-cosvhxvwiu.gz
+|           |   |       |       jt98kzs8fw-d6nrnj6jjx.gz
+|           |   |       |       jxvzt08mkq-87fc7y1x7t.gz
+|           |   |       |       k6jmgg1cxj-d4r6k3f320.gz
+|           |   |       |       m60ipxnc95-43atpzeawx.gz
+|           |   |       |       mj6bqcb0nv-kbrnm935zg.gz
+|           |   |       |       mqam7lqb96-jjsuc0puko.gz
+|           |   |       |       mxr7dl28vl-61n19gt1b8.gz
+|           |   |       |       n4js0v3v87-ausgxo2sd3.gz
+|           |   |       |       ntadjqr7sk-ttgo8qnofa.gz
+|           |   |       |       p393aly173-ft3s53vfgj.gz
+|           |   |       |       qsvrzeicmv-tmc1g35s3z.gz
+|           |   |       |       rblqx8nkdb-zub09dkrxp.gz
+|           |   |       |       st32tpw1mu-b9sayid5wm.gz
+|           |   |       |       sug4ni3ll6-356vix0kms.gz
+|           |   |       |       u82tlyqgal-q9ht133ko3.gz
+|           |   |       |       uvua900r9x-nvvlpmu67g.gz
+|           |   |       |       wfy0ix3gpc-iovd86k7lj.gz
+|           |   |       |       wikcpmstel-bb9kt6h99v.gz
+|           |   |       |       wl7q084182-j5mq2jizvt.gz
+|           |   |       |       wrma3xmtdh-gye83jo8yx.gz
+|           |   |       |       wxnl32w0lg-m9qm4tazc0.gz
+|           |   |       |       x0hixkxxyh-worgj0nhwm.gz
+|           |   |       |       x6sskdr323-c2oey78nd0.gz
+|           |   |       |       xqe70klrk1-6pdc2jztkx.gz
+|           |   |       |       xqmcjlj2o8-y7v9cxd14o.gz
+|           |   |       |       ybhtiplzaq-x0q3zqp4vz.gz
+|           |   |       |       z2vzczmawa-ltid2c489k.gz
+|           |   |       |       zrzp0fkkwj-u9q1upor1n.gz
+|           |   |       |       zwhebnck3r-l2k5pvcc6r.gz
+|           |   |       |       
+|           |   |       +---ref
+|           |   |       |       MyWeb.WebApp.dll
+|           |   |       |       
+|           |   |       +---refint
+|           |   |       |       MyWeb.WebApp.dll
+|           |   |       |       
+|           |   |       +---scopedcss
+|           |   |       |   +---bundle
+|           |   |       |   |       MyWeb.WebApp.styles.css
+|           |   |       |   |       
+|           |   |       |   +---projectbundle
+|           |   |       |   |       MyWeb.WebApp.bundle.scp.css
+|           |   |       |   |       
+|           |   |       |   \---Views
+|           |   |       |       \---Shared
+|           |   |       |               _Layout.cshtml.rz.scp.css
+|           |   |       |               
+|           |   |       \---staticwebassets
+|           |   \---Release
+|           |       \---net9.0
+|           |           |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|           |           |   apphost.exe
+|           |           |   MyWeb.We.FCC469A4.Up2Date
+|           |           |   MyWeb.WebApp.AssemblyInfo.cs
+|           |           |   MyWeb.WebApp.AssemblyInfoInputs.cache
+|           |           |   MyWeb.WebApp.assets.cache
+|           |           |   MyWeb.WebApp.csproj.AssemblyReference.cache
+|           |           |   MyWeb.WebApp.csproj.CoreCompileInputs.cache
+|           |           |   MyWeb.WebApp.csproj.FileListAbsolute.txt
+|           |           |   MyWeb.WebApp.dll
+|           |           |   MyWeb.WebApp.GeneratedMSBuildEditorConfig.editorconfig
+|           |           |   MyWeb.WebApp.genruntimeconfig.cache
+|           |           |   MyWeb.WebApp.GlobalUsings.g.cs
+|           |           |   MyWeb.WebApp.MvcApplicationPartsAssemblyInfo.cache
+|           |           |   MyWeb.WebApp.MvcApplicationPartsAssemblyInfo.cs
+|           |           |   MyWeb.WebApp.pdb
+|           |           |   MyWeb.WebApp.RazorAssemblyInfo.cache
+|           |           |   MyWeb.WebApp.RazorAssemblyInfo.cs
+|           |           |   MyWeb.WebApp.sourcelink.json
+|           |           |   rbcswa.dswa.cache.json
+|           |           |   rjimswa.dswa.cache.json
+|           |           |   rjsmcshtml.dswa.cache.json
+|           |           |   rjsmrazor.dswa.cache.json
+|           |           |   rpswa.dswa.cache.json
+|           |           |   staticwebassets.build.endpoints.json
+|           |           |   staticwebassets.build.json
+|           |           |   staticwebassets.build.json.cache
+|           |           |   staticwebassets.development.json
+|           |           |   
+|           |           +---compressed
+|           |           |       2bfsb0cvcb-xvp3kq03qx.gz
+|           |           |       34472grz7l-c63t5i9ira.gz
+|           |           |       35zd6n0ic9-sejl45xvog.gz
+|           |           |       36l67e3tp1-t1cqhe9u97.gz
+|           |           |       39d84ywi9k-4094rpi4f9.gz
+|           |           |       3ksynrceqz-mrlpezrjn3.gz
+|           |           |       4cabao1u8v-mlv21k5csn.gz
+|           |           |       4iruudilt7-8vyfqsqgz1.gz
+|           |           |       53maqumfje-c2jlpeoesf.gz
+|           |           |       5ntch1tj92-22vffe00uq.gz
+|           |           |       697kycvlbg-pj5nd1wqec.gz
+|           |           |       6tfec5kx69-v0zj4ognzu.gz
+|           |           |       6umdofx9u3-ee0r1s7dh0.gz
+|           |           |       78nwxf5wlb-hd3gran6i8.gz
+|           |           |       7h6td3qnbz-hrwsygsryq.gz
+|           |           |       7irzsf0xhd-h1s4sie4z3.gz
+|           |           |       927n93b6a0-gk0pw8i4co.gz
+|           |           |       a4pz3v92kz-jd9uben2k1.gz
+|           |           |       bqnawcz76f-0j3bgjxly4.gz
+|           |           |       bui6pvtiw2-aexeepp0ev.gz
+|           |           |       d2fi337kwj-rxsg74s51o.gz
+|           |           |       dyz38wxq44-9vr69e8ynj.gz
+|           |           |       e2xdjiewnf-wl58j5mj3v.gz
+|           |           |       egd086d8wg-03hjc8e09r.gz
+|           |           |       ev734obzi3-83jwlth58m.gz
+|           |           |       fwztehi7or-fvhpjtyr6v.gz
+|           |           |       fxi4g372lb-r4e9w2rdcm.gz
+|           |           |       gwb7sh9ksp-xtxxf3hu2r.gz
+|           |           |       h5mbwtbohc-keugtjm085.gz
+|           |           |       h7bnfex0g3-ynyaa8k90p.gz
+|           |           |       hg5a6f9ejb-fsbi9cje9m.gz
+|           |           |       hu9x9dbxg7-4d85u1mtcx.gz
+|           |           |       ipurlb5r10-l2k5pvcc6r.gz
+|           |           |       jeru09zudy-48y08845bh.gz
+|           |           |       jkf162hh3s-qesaa3a1fm.gz
+|           |           |       joxntly8v0-cosvhxvwiu.gz
+|           |           |       jt98kzs8fw-d6nrnj6jjx.gz
+|           |           |       jxvzt08mkq-87fc7y1x7t.gz
+|           |           |       k6jmgg1cxj-d4r6k3f320.gz
+|           |           |       m60ipxnc95-43atpzeawx.gz
+|           |           |       mj6bqcb0nv-kbrnm935zg.gz
+|           |           |       mqam7lqb96-jjsuc0puko.gz
+|           |           |       mxr7dl28vl-61n19gt1b8.gz
+|           |           |       n4js0v3v87-ausgxo2sd3.gz
+|           |           |       ntadjqr7sk-ttgo8qnofa.gz
+|           |           |       p393aly173-ft3s53vfgj.gz
+|           |           |       qsvrzeicmv-tmc1g35s3z.gz
+|           |           |       rblqx8nkdb-zub09dkrxp.gz
+|           |           |       st32tpw1mu-b9sayid5wm.gz
+|           |           |       sug4ni3ll6-356vix0kms.gz
+|           |           |       u82tlyqgal-q9ht133ko3.gz
+|           |           |       uvua900r9x-nvvlpmu67g.gz
+|           |           |       wfy0ix3gpc-iovd86k7lj.gz
+|           |           |       wikcpmstel-bb9kt6h99v.gz
+|           |           |       wl7q084182-j5mq2jizvt.gz
+|           |           |       wrma3xmtdh-gye83jo8yx.gz
+|           |           |       wxnl32w0lg-m9qm4tazc0.gz
+|           |           |       x0hixkxxyh-worgj0nhwm.gz
+|           |           |       x6sskdr323-c2oey78nd0.gz
+|           |           |       xqe70klrk1-6pdc2jztkx.gz
+|           |           |       xqmcjlj2o8-y7v9cxd14o.gz
+|           |           |       ybhtiplzaq-x0q3zqp4vz.gz
+|           |           |       z2vzczmawa-ltid2c489k.gz
+|           |           |       zrzp0fkkwj-u9q1upor1n.gz
+|           |           |       zwhebnck3r-l2k5pvcc6r.gz
+|           |           |       
+|           |           +---ref
+|           |           |       MyWeb.WebApp.dll
+|           |           |       
+|           |           +---refint
+|           |           |       MyWeb.WebApp.dll
+|           |           |       
+|           |           +---scopedcss
+|           |           |   +---bundle
+|           |           |   |       MyWeb.WebApp.styles.css
+|           |           |   |       
+|           |           |   +---projectbundle
+|           |           |   |       MyWeb.WebApp.bundle.scp.css
+|           |           |   |       
+|           |           |   \---Views
+|           |           |       \---Shared
+|           |           |               _Layout.cshtml.rz.scp.css
+|           |           |               
+|           |           \---staticwebassets
+|           +---Properties
+|           |       launchSettings.json
+|           |       
+|           +---Views
+|           |   |   _ViewImports.cshtml
+|           |   |   _ViewStart.cshtml
+|           |   |   
+|           |   +---HistoryUi
+|           |   |       Trend.cshtml
+|           |   |       
+|           |   +---Home
+|           |   |       Index.cshtml
+|           |   |       Privacy.cshtml
+|           |   |       
+|           |   \---Shared
+|           |           Error.cshtml
+|           |           _Layout.cshtml
+|           |           _Layout.cshtml.css
+|           |           _ValidationScriptsPartial.cshtml
+|           |           
+|           \---wwwroot
+|               |   favicon.ico
+|               |   
+|               +---css
+|               |       site.css
+|               |       
+|               +---js
+|               |       history-trend.js
+|               |       site.js
+|               |       
+|               \---lib
+|                   +---bootstrap
+|                   |   |   LICENSE
+|                   |   |   
+|                   |   \---dist
+|                   |       +---css
+|                   |       |       bootstrap-grid.css
+|                   |       |       bootstrap-grid.css.map
+|                   |       |       bootstrap-grid.min.css
+|                   |       |       bootstrap-grid.min.css.map
+|                   |       |       bootstrap-grid.rtl.css
+|                   |       |       bootstrap-grid.rtl.css.map
+|                   |       |       bootstrap-grid.rtl.min.css
+|                   |       |       bootstrap-grid.rtl.min.css.map
+|                   |       |       bootstrap-reboot.css
+|                   |       |       bootstrap-reboot.css.map
+|                   |       |       bootstrap-reboot.min.css
+|                   |       |       bootstrap-reboot.min.css.map
+|                   |       |       bootstrap-reboot.rtl.css
+|                   |       |       bootstrap-reboot.rtl.css.map
+|                   |       |       bootstrap-reboot.rtl.min.css
+|                   |       |       bootstrap-reboot.rtl.min.css.map
+|                   |       |       bootstrap-utilities.css
+|                   |       |       bootstrap-utilities.css.map
+|                   |       |       bootstrap-utilities.min.css
+|                   |       |       bootstrap-utilities.min.css.map
+|                   |       |       bootstrap-utilities.rtl.css
+|                   |       |       bootstrap-utilities.rtl.css.map
+|                   |       |       bootstrap-utilities.rtl.min.css
+|                   |       |       bootstrap-utilities.rtl.min.css.map
+|                   |       |       bootstrap.css
+|                   |       |       bootstrap.css.map
+|                   |       |       bootstrap.min.css
+|                   |       |       bootstrap.min.css.map
+|                   |       |       bootstrap.rtl.css
+|                   |       |       bootstrap.rtl.css.map
+|                   |       |       bootstrap.rtl.min.css
+|                   |       |       bootstrap.rtl.min.css.map
+|                   |       |       
+|                   |       \---js
+|                   |               bootstrap.bundle.js
+|                   |               bootstrap.bundle.js.map
+|                   |               bootstrap.bundle.min.js
+|                   |               bootstrap.bundle.min.js.map
+|                   |               bootstrap.esm.js
+|                   |               bootstrap.esm.js.map
+|                   |               bootstrap.esm.min.js
+|                   |               bootstrap.esm.min.js.map
+|                   |               bootstrap.js
+|                   |               bootstrap.js.map
+|                   |               bootstrap.min.js
+|                   |               bootstrap.min.js.map
+|                   |               
+|                   +---jquery
+|                   |   |   LICENSE.txt
+|                   |   |   
+|                   |   \---dist
+|                   |           jquery.js
+|                   |           jquery.min.js
+|                   |           jquery.min.map
+|                   |           jquery.slim.js
+|                   |           jquery.slim.min.js
+|                   |           jquery.slim.min.map
+|                   |           
+|                   +---jquery-validation
+|                   |   |   LICENSE.md
+|                   |   |   
+|                   |   \---dist
+|                   |           additional-methods.js
+|                   |           additional-methods.min.js
+|                   |           jquery.validate.js
+|                   |           jquery.validate.min.js
+|                   |           
+|                   \---jquery-validation-unobtrusive
+|                       |   LICENSE.txt
+|                       |   
+|                       \---dist
+|                               jquery.validate.unobtrusive.js
+|                               jquery.validate.unobtrusive.min.js
+|                               
++---_export
+|       01-PROJE-OZETI.txt
+|       02-PROJE-SABITLERI.txt
+|       10-CORE_ICERIGI.txt
+|       20-INFRASTRUCTURE_ICERIGI.txt
+|       30-MODULES_ICERIGI.txt
+|       40-RUNTIME_ICERIGI.txt
+|       50-WEBAPP_ICERIGI.txt
+|       90-INDEX-MANIFEST.json
+|       _STATE_SNAPSHOT.txt
+|       _tree.txt
+|       
++---_packages
+|   |   demo.mywebpkg
+|   |   
+|   \---demo
+|       |   manifest.json
+|       |   
+|       \---config
+|               controllers.json
+|               tags.json
+|               
++---_postman
+|       myweb-plc.postman_collection.json
+|       
+\---_state
+    |   BUILD.txt
+    |   DB_SCHEMA.txt
+    |   GIT_BRANCH.txt
+    |   GIT_SHA.txt
+    |   LAST10.txt
+    |   LAST15.txt
+    |   LOG_LASTRUN.txt
+    |   src_Modules_Communication.Siemens_MyWeb.Communication.Siemens_SiemensCommunicationChannel.cs.snapshot.txt
+    |   src_Runtime_MyWeb.Runtime_History_HistoryWriterService.cs.snapshot.txt
+    |   src_Runtime_MyWeb.Runtime_ServiceCollectionExtensions.cs.snapshot.txt
+    |   src_Runtime_MyWeb.Runtime_Services_RetentionCleanerService.cs.snapshot.txt
+    |   src_Runtime_MyWeb.Runtime_Services_TagSamplingService.cs.snapshot.txt
+    |   src_WebApp_MyWeb.WebApp_appsettings.Development.json.snapshot.txt
+    |   src_WebApp_MyWeb.WebApp_appsettings.json.snapshot.txt
+    |   src_WebApp_MyWeb.WebApp_Controllers_HistoryUiController.cs.snapshot.txt
+    |   src_WebApp_MyWeb.WebApp_Program.cs.snapshot.txt
+    |   src_WebApp_MyWeb.WebApp_Views_HistoryUi_Trend.cshtml.snapshot.txt
+    |   src_WebApp_MyWeb.WebApp_wwwroot_js_history-trend.js.snapshot.txt
+    |   STATUS.txt
+    |   _state.txt
+    |   
+    \---snapshots
+            HistoryWriterService.cs.snapshot.txt
+            HistoryWriterService.snapshot.txt
+            Program.cs.snapshot.txt
+            RetentionCleanerService.cs.snapshot.txt
+            RetentionCleanerService.snapshot.txt
+            ServiceCollectionExtensions.cs.snapshot.txt
+            ServiceCollectionExtensions.snapshot.txt
+            SiemensCommunicationChannel.cs.snapshot.txt
+            TagSamplingService.cs.snapshot.txt
+            TagSamplingService.snapshot.txt
+            

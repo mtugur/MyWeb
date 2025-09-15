@@ -1,0 +1,15 @@
+﻿{
+    "branch":  "feat/runtime-watchdog",
+    "generatedAt":  "2025-09-15 15:46:12",
+    "files":  [
+                  "01-PROJE-OZETI.txt",
+                  "02-PROJE-SABITLERI.txt",
+                  "10-CORE_ICERIGI.txt",
+                  "20-INFRASTRUCTURE_ICERIGI.txt",
+                  "30-MODULES_ICERIGI.txt",
+                  "40-RUNTIME_ICERIGI.txt",
+                  "50-WEBAPP_ICERIGI.txt",
+                  "_STATE_SNAPSHOT.txt"
+              ],
+    "sha":  "91d774e"
+}
