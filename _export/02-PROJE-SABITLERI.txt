@@ -1,9 +1,5 @@
-﻿DB Name    : MyWeb
-Schemas    : catalog, hist, auth
-
-ConnStrings:
-  HistorianDb : 
-  CatalogDb   : 
-
-Swagger(HTTP) : n/a
-Swagger(HTTPS): n/a
+﻿Repo: https://github.com/mtugur/MyWeb
+Lokal yol: C:\Users\User\Desktop\Proje\MyWeb
+PLC: IP=192.168.1.113, Rack=0, Slot=1, CPU=S71500 (Örnek)
+DB: Server=localhost; Database=MyWeb; Trusted_Connection=True
+Swagger: http://localhost:5113/swagger
