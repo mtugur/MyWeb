@@ -1,0 +1,21 @@
+﻿{
+    "generatedAt":  "2025-09-16T15:34:08",
+    "repoRoot":  "C:\\Users\\User\\Desktop\\Proje\\MyWeb",
+    "outDir":  "C:\\Users\\User\\Desktop\\Proje\\MyWeb\\_export",
+    "gitBranch":  "feat/runtime-watchdog",
+    "gitSha":  "3def4bd",
+    "swagger":  {
+                    "https":  "",
+                    "http":  ""
+                },
+    "files":  [
+                  "00-PROJE-TALIMATLARI.txt",
+                  "01-PROJE-OZETI.txt",
+                  "02-PROJE-SABITLERI.txt",
+                  "10-CORE_ICERIGI.txt",
+                  "20-INFRASTRUCTURE_ICERIGI.txt",
+                  "30-MODULES_ICERIGI.txt",
+                  "40-RUNTIME_ICERIGI.txt",
+                  "50-WEBAPP_ICERIGI.txt"
+              ]
+}

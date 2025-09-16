@@ -1,7 +1,7 @@
-<#  emits _export bundle (PS 5.1 compatible)
-    - Removes _export then recreates
-    - Gathers key files into sectioned text docs
-    - Writes 90-INDEX-MANIFEST.json with metadata
+<# emits _export bundle (PS 5.1 compatible)
+   - Removes _export then recreates
+   - Gathers key files into sectioned text docs
+   - Writes 90-INDEX-MANIFEST.json with metadata
 #>
 
 Param(
@@ -72,26 +72,26 @@ if ($cfg -and $cfg.ConnectionStrings) {
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 00 – TALIMATLAR (kısa referans)
+# 00 - TALIMATLAR (kisa referans)
 $T00 = @()
-$T00 += "MyWeb — SCADA/MES (Stage-1: Auth/RBAC + Trend UI)"
-$T00 += "Bu klasör, AI’ye ve ekip içi incelemeye yönelik *_export* özet dosyalarını içerir."
-$T00 += ""
-$T00 += "Ritüel:"
-$T00 += "  scripts\emit-project-files.ps1         # export’u güncelle"
-$T00 += "  scripts\Save-StateAndPush.ps1 -Message \"...\"   # state+export+git"
-$T00 += ""
-$T00 += "Kilometre taşları: Stage-1 kilitli (Identity/RBAC + Basic Trend)."
+$T00 += 'MyWeb - SCADA/MES (Stage-1: Auth/RBAC + Trend UI)'
+$T00 += 'Bu klasor, AI ve ekip ici inceleme icin _export ozet dosyalarini icerir.'
+$T00 += ''
+$T00 += 'Rituel:'
+$T00 += '  scripts\emit-project-files.ps1                  # export guncelle'
+$T00 += '  scripts\Save-StateAndPush.ps1 -Message "..."    # state+export+git'
+$T00 += ''
+$T00 += 'Kilometre taslari: Stage-1 kilitli (Identity/RBAC + Basic Trend).'
 Write-TextFile -Path (Join-Path $OutDir "00-PROJE-TALIMATLARI.txt") -Lines $T00
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 01 – PROJE ÖZETİ (ağaç + önemli dosyalar)
+# 01 - PROJE OZETI (agac + onemli dosyalar)
 $tree = & cmd /c "tree `"$RepoRoot\src`" /F" 2>$null
 $T01 = @()
-$T01 += "== PROJE AĞACI (src) =="
+$T01 += "== PROJE AGACI (src) =="
 $T01 += $tree
 $T01 += ""
-$T01 += "== ÖNEMLİ DOSYALAR =="
+$T01 += "== ONEMLI DOSYALAR =="
 $T01 += @(
   "WebApp\Program.cs",
   "WebApp\Infrastructure\AuthSetup.cs",
@@ -109,7 +109,7 @@ $T01 += @(
 Write-TextFile -Path (Join-Path $OutDir "01-PROJE-OZETI.txt") -Lines $T01
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 02 – SABITLER (connstr + swagger)
+# 02 - SABITLER (connstr + swagger)
 $T02 = @()
 $T02 += "DB Name    : MyWeb"
 $T02 += "Schemas    : catalog, hist, auth"
@@ -131,26 +131,26 @@ if ($swaggerHttps -ne "") {
 Write-TextFile -Path (Join-Path $OutDir "02-PROJE-SABITLERI.txt") -Lines $T02
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 10 – CORE (seçilmiş)
+# 10 - CORE (secilmis)
 $T10 = ""
 $T10 += Section (Rel "$RepoRoot\src\Core\MyWeb.Core\MyWeb.Core.csproj") (Read-TextOrEmpty "$RepoRoot\src\Core\MyWeb.Core\MyWeb.Core.csproj")
 Write-TextFile -Path (Join-Path $OutDir "10-CORE_ICERIGI.txt") -Lines $T10
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 20 – INFRASTRUCTURE
+# 20 - INFRASTRUCTURE
 $T20 = ""
 $T20 += Section (Rel "$RepoRoot\src\Infrastructure\MyWeb.Infrastructure.Data\Identity\IdentityDbContext.cs") (Read-TextOrEmpty "$RepoRoot\src\Infrastructure\MyWeb.Infrastructure.Data\Identity\IdentityDbContext.cs")
 $T20 += Section (Rel "$RepoRoot\src\Infrastructure\MyWeb.Infrastructure.Data\Identity\PermissionModels.cs") (Read-TextOrEmpty "$RepoRoot\src\Infrastructure\MyWeb.Infrastructure.Data\Identity\PermissionModels.cs")
 Write-TextFile -Path (Join-Path $OutDir "20-INFRASTRUCTURE_ICERIGI.txt") -Lines $T20
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 30 – MODULES
+# 30 - MODULES
 $T30 = ""
 $T30 += Section (Rel "$RepoRoot\src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\SiemensCommunicationChannel.cs") (Read-TextOrEmpty "$RepoRoot\src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\SiemensCommunicationChannel.cs")
 Write-TextFile -Path (Join-Path $OutDir "30-MODULES_ICERIGI.txt") -Lines $T30
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 40 – RUNTIME
+# 40 - RUNTIME
 $T40 = ""
 $T40 += Section (Rel "$RepoRoot\src\Runtime\MyWeb.Runtime\ServiceCollectionExtensions.cs") (Read-TextOrEmpty "$RepoRoot\src\Runtime\MyWeb.Runtime\ServiceCollectionExtensions.cs")
 $T40 += Section (Rel "$RepoRoot\src\Runtime\MyWeb.Runtime\Services\TagSamplingService.cs") (Read-TextOrEmpty "$RepoRoot\src\Runtime\MyWeb.Runtime\Services\TagSamplingService.cs")
@@ -159,7 +159,7 @@ $T40 += Section (Rel "$RepoRoot\src\Runtime\MyWeb.Runtime\Services\RetentionClea
 Write-TextFile -Path (Join-Path $OutDir "40-RUNTIME_ICERIGI.txt") -Lines $T40
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 50 – WEBAPP
+# 50 - WEBAPP
 $T50 = ""
 $T50 += Section (Rel "$RepoRoot\src\WebApp\MyWeb.WebApp\Program.cs") (Read-TextOrEmpty "$RepoRoot\src\WebApp\MyWeb.WebApp\Program.cs")
 $T50 += Section (Rel "$RepoRoot\src\WebApp\MyWeb.WebApp\Infrastructure\AuthSetup.cs") (Read-TextOrEmpty "$RepoRoot\src\WebApp\MyWeb.WebApp\Infrastructure\AuthSetup.cs")
@@ -171,7 +171,7 @@ $T50 += Section (Rel "$RepoRoot\src\WebApp\MyWeb.WebApp\wwwroot\js\history-trend
 Write-TextFile -Path (Join-Path $OutDir "50-WEBAPP_ICERIGI.txt") -Lines $T50
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 90 – INDEX MANIFEST
+# 90 - INDEX MANIFEST
 $manifest = [ordered]@{
   generatedAt = (Get-Date).ToString("s")
   repoRoot    = $RepoRoot
@@ -198,11 +198,11 @@ $manifest | ConvertTo-Json -Depth 8 | Set-Content (Join-Path $OutDir "90-INDEX-M
 # small convenience: state snapshot headline
 $stateSnap = @(
   "EXPORT GENERATED",
-  "Time   : " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss"),
-  "OutDir : " + $OutDir,
-  "Branch : " + $gitBranch,
-  "SHA    : " + $gitSha
+  ("Time   : " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")),
+  ("OutDir : " + $OutDir),
+  ("Branch : " + $gitBranch),
+  ("SHA    : " + $gitSha)
 )
 Write-TextFile -Path (Join-Path $OutDir "_STATE_SNAPSHOT.txt") -Lines $stateSnap
 
-Info "done -> $OutDir"
+Info ("done -> " + $OutDir)

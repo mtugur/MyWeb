@@ -1,0 +1,9 @@
+﻿DB Name    : MyWeb
+Schemas    : catalog, hist, auth
+
+ConnStrings:
+  HistorianDb : 
+  CatalogDb   : 
+
+Swagger(HTTP) : n/a
+Swagger(HTTPS): n/a

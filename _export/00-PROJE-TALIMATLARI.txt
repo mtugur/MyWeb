@@ -1,0 +1,8 @@
+﻿MyWeb - SCADA/MES (Stage-1: Auth/RBAC + Trend UI)
+Bu klasor, AI ve ekip ici inceleme icin _export ozet dosyalarini icerir.
+
+Rituel:
+  scripts\emit-project-files.ps1                  # export guncelle
+  scripts\Save-StateAndPush.ps1 -Message "..."    # state+export+git
+
+Kilometre taslari: Stage-1 kilitli (Identity/RBAC + Basic Trend).

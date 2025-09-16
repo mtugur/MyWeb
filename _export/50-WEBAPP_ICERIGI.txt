@@ -1,0 +1,714 @@
+﻿===== src\WebApp\MyWeb.WebApp\Program.cs =====
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection; // CreateScope/GetRequiredService
+using Microsoft.Extensions.Options;
+using MyWeb.Communication.Siemens;
+using MyWeb.Core.Communication;
+using MyWeb.Persistence.Catalog;
+using MyWeb.Persistence.Historian;
+using MyWeb.Runtime;
+using MyWeb.WebApp.Infrastructure;            // AddMyWebAuth
+using MyWeb.Infrastructure.Data.Identity;     // IdentityDb (auth şeması)
+using Serilog;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// --- Kimlik / Yetkilendirme (Cookie + Identity) ---
+builder.Services.AddMyWebAuth(builder.Configuration);
+
+// --- Kod sayfaları (ör. CP1254) ---
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+// --- Serilog ---
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/app-.log",
+                  rollingInterval: RollingInterval.Day,
+                  retainedFileCountLimit: 7,
+                  fileSizeLimitBytes: 10_000_000,
+                  rollOnFileSizeLimit: true)
+    .CreateLogger();
+
+builder.Host.UseSerilog(Log.Logger);
+
+// --- EF Core DbContext kayıtları (tek DB, iki şema: catalog/hist) ---
+builder.Services.AddDbContext<CatalogDbContext>(opt =>
+{
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("CatalogDb"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistoryCatalog", "catalog"));
+});
+
+builder.Services.AddDbContext<HistorianDbContext>(opt =>
+{
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("HistorianDb"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistoryHist", "hist"));
+});
+
+// [Runtime] Bootstrap/Package yükleme + snapshot servisleri (HostedService)
+MyWeb.Runtime.ServiceCollectionExtensions.AddMyWebRuntime(builder.Services, builder.Configuration);
+
+// --- PLC bağlantı ayarları ---
+builder.Services.Configure<PlcConnectionSettings>(
+    builder.Configuration.GetSection("PlcConnectionSettings"));
+
+// --- Siemens kanalını DI ile kaydet ---
+builder.Services.AddSingleton<ICommunicationChannel>(sp =>
+{
+    var channel = new SiemensCommunicationChannel(
+        sp.GetRequiredService<IOptions<PlcConnectionSettings>>(),
+        sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SiemensCommunicationChannel>>()
+    );
+
+    // Örnek tag’ler (DB1000)
+    channel.AddTag(new TagDefinition { Name = "tBool", Address = "DB1000.DBX0.0", DataType = "DataBlock", VarType = "Bit", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tByte", Address = "DB1000.DBB1", DataType = "DataBlock", VarType = "Byte", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tWord", Address = "DB1000.DBW2", DataType = "DataBlock", VarType = "Word", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tLWord", Address = "DB1000.DBD4", DataType = "DataBlock", VarType = "LWord", Count = 2 });
+    channel.AddTag(new TagDefinition { Name = "tDWord", Address = "DB1000.DBD12", DataType = "DataBlock", VarType = "DWord", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tInt", Address = "DB1000.DBW16", DataType = "DataBlock", VarType = "Int", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tSInt", Address = "DB1000.DBB18", DataType = "DataBlock", VarType = "SInt", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tUInt", Address = "DB1000.DBW20", DataType = "DataBlock", VarType = "Word", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tULInt", Address = "DB1000.DBD22", DataType = "DataBlock", VarType = "ULInt", Count = 2 });
+    channel.AddTag(new TagDefinition { Name = "tDInt", Address = "DB1000.DBD30", DataType = "DataBlock", VarType = "DInt", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tLInt", Address = "DB1000.DBD34", DataType = "DataBlock", VarType = "LInt", Count = 2 });
+    channel.AddTag(new TagDefinition { Name = "tReal", Address = "DB1000.DBD42", DataType = "DataBlock", VarType = "Real", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tLReal", Address = "DB1000.DBD46", DataType = "DataBlock", VarType = "LReal", Count = 1 });
+    channel.AddTag(new TagDefinition { Name = "tString", Address = "DB1000.DBB54", DataType = "DataBlock", VarType = "String", Count = 20 });
+    channel.AddTag(new TagDefinition { Name = "tWString", Address = "DB1000.DBB76", DataType = "DataBlock", VarType = "WString", Count = 20 });
+
+    channel.Connect();
+    return channel;
+});
+
+// --- MVC / API ---
+builder.Services.AddControllersWithViews();
+
+// --- Swagger ---
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseSerilogRequestLogging();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+
+// --- Kimlik middleware (ÖNCE Authentication, sonra Authorization) ---
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapStaticAssets();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+).WithStaticAssets();
+
+// --- EF Core otomatik migrasyon (idempotent) ---
+using (var scope = app.Services.CreateScope())
+{
+    var catalog = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    var hist = scope.ServiceProvider.GetRequiredService<HistorianDbContext>();
+    var authDb = scope.ServiceProvider.GetRequiredService<IdentityDb>();
+
+    try
+    {
+        catalog.Database.Migrate();
+        hist.Database.Migrate();
+        authDb.Database.Migrate(); // ← auth şeması (Identity)
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("[EF MIGRATION ERROR] " + ex);
+    }
+
+    // NOT: BootstrapRunner burada manuel çağrılmıyor; AddMyWebRuntime içindeki HostedService otomatik çalışır.
+}
+
+app.Run();
+
+===== src\WebApp\MyWeb.WebApp\Infrastructure\AuthSetup.cs =====
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MyWeb.Infrastructure.Data.Identity;
+
+namespace MyWeb.WebApp.Infrastructure;
+
+public static class AuthSetup
+{
+    public static IServiceCollection AddMyWebAuth(this IServiceCollection services, IConfiguration cfg)
+    {
+        // Identity DbContext (aynı MyWeb DB, auth şeması)
+        services.AddDbContext<IdentityDb>(opt =>
+        {
+            opt.UseSqlServer(
+                cfg.GetConnectionString("CatalogDb") ?? cfg.GetConnectionString("HistorianDb")!,
+                sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", IdentityDb.Schema));
+        });
+
+        // ASP.NET Core Identity (cookie bazlı)
+        services
+            .AddIdentityCore<ApplicationUser>(o =>
+            {
+                o.Password.RequireDigit = false;
+                o.Password.RequireNonAlphanumeric = false;
+                o.Password.RequireUppercase = false;
+                o.Password.RequiredLength = 6;
+                o.User.RequireUniqueEmail = true;
+                o.SignIn.RequireConfirmedAccount = false;
+            })
+            .AddRoles<ApplicationRole>()
+            .AddEntityFrameworkStores<IdentityDb>()
+            .AddSignInManager()
+            .AddDefaultTokenProviders();
+
+        // Authentication (Identity.Application cookie)
+        services
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+            })
+            .AddCookie(IdentityConstants.ApplicationScheme, o =>
+            {
+                o.LoginPath = "/account/login";
+                o.LogoutPath = "/account/logout";
+                o.AccessDeniedPath = "/account/denied";
+                o.Cookie.Name = ".MyWeb.Auth";
+                o.Cookie.HttpOnly = true;
+                o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                o.SlidingExpiration = true;
+                o.ExpireTimeSpan = TimeSpan.FromHours(8);
+            });
+
+        // Authorization + Policy
+        services.AddAuthorization(options =>
+        {
+            // Aşama 1: basit RBAC; Admin/Operator → Historian API erişimi
+            options.AddPolicy("CanUseHistorian", p =>
+                p.RequireRole("Admin", "Operator"));
+        });
+
+        return services;
+    }
+}
+
+===== src\WebApp\MyWeb.WebApp\Controllers\AccountController.cs =====
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using MyWeb.Infrastructure.Data.Identity;
+
+namespace MyWeb.WebApp.Controllers;
+
+[Route("account")]
+public class AccountController : Controller
+{
+    private readonly SignInManager<ApplicationUser> _signIn;
+    private readonly UserManager<ApplicationUser> _users;
+
+    public AccountController(SignInManager<ApplicationUser> signIn, UserManager<ApplicationUser> users)
+    {
+        _signIn = signIn;
+        _users = users;
+    }
+
+    [HttpGet("login")]
+    [AllowAnonymous]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        ViewBag.ReturnUrl = returnUrl;
+        return View(); // İstersen şimdilik boş bir Razor View ile basit form ekleriz; yoksa API post yolu da kullanabiliriz.
+    }
+
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> LoginPost([FromForm] string email, [FromForm] string password, string? returnUrl = null)
+    {
+        var user = await _users.FindByEmailAsync(email);
+        if (user is null)
+        {
+            await Task.Delay(300); // timing attack azaltma
+            return Unauthorized("Invalid credentials");
+        }
+
+        var result = await _signIn.PasswordSignInAsync(user, password, isPersistent: true, lockoutOnFailure: true);
+        if (!result.Succeeded) return Unauthorized("Invalid credentials");
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+        return Redirect("/");
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        await _signIn.SignOutAsync();
+        return Redirect("/");
+    }
+
+    [HttpGet("denied")]
+    [AllowAnonymous]
+    public IActionResult Denied() => Content("Access Denied");
+}
+
+===== src\WebApp\MyWeb.WebApp\Controllers\HistoryUiController.cs =====
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MyWeb.Persistence.Catalog;
+
+namespace MyWeb.WebApp.Controllers
+{
+    [Route("history")]
+    public sealed class HistoryUiController : Controller
+    {
+        private readonly CatalogDbContext _catalog;
+
+        public HistoryUiController(CatalogDbContext catalog)
+        {
+            _catalog = catalog;
+        }
+
+        // /history/trend?projectKey=Demo.Plant
+        [AllowAnonymous]
+        [HttpGet("trend")]
+        public async Task<IActionResult> Trend([FromQuery] string? projectKey = null, CancellationToken ct = default)
+        {
+            var projects = await _catalog.Projects
+                .AsNoTracking()
+                .OrderBy(p => p.Id)
+                .Select(p => new ProjectVm { Id = p.Id, Key = p.Key!, Name = p.Name! })
+                .ToListAsync(ct);
+
+            int selectedProjectId;
+            if (!string.IsNullOrWhiteSpace(projectKey))
+            {
+                selectedProjectId = await _catalog.Projects
+                    .Where(p => p.Key == projectKey)
+                    .Select(p => p.Id)
+                    .FirstOrDefaultAsync(ct);
+
+                if (selectedProjectId == 0)
+                    selectedProjectId = projects.FirstOrDefault()?.Id ?? 0;
+            }
+            else
+            {
+                selectedProjectId = projects.FirstOrDefault()?.Id ?? 0;
+            }
+
+            var tags = await _catalog.Tags
+                .AsNoTracking()
+                .Where(t => selectedProjectId == 0 || t.ProjectId == selectedProjectId)
+                .OrderBy(t => t.Path)
+                .Select(t => new TagVm
+                {
+                    Id = t.Id,
+                    Path = t.Path!,             // View bunu bekliyor
+                    Name = t.Name!,
+                    DataType = (int)t.DataType  // enum -> int
+                })
+                .ToListAsync(ct);
+
+            var vm = new TrendVm
+            {
+                Projects = projects,
+                Tags = tags,
+                SelectedProjectId = selectedProjectId,
+                ProjectKey = projectKey
+            };
+
+            return View("~/Views/HistoryUi/Trend.cshtml", vm);
+        }
+
+        // ==== ViewModel'ler (Razor 'HistoryUiController.TrendVm' bekliyor) ====
+        public sealed record ProjectVm
+        {
+            public int Id { get; set; }
+            public string Key { get; set; } = "";
+            public string Name { get; set; } = "";
+        }
+
+        public sealed record TagVm
+        {
+            public int Id { get; set; }
+            public string Path { get; set; } = "";
+            public string Name { get; set; } = "";
+            public int DataType { get; set; }
+        }
+
+        public sealed record TrendVm
+        {
+            public List<ProjectVm> Projects { get; set; } = new();
+            public List<TagVm> Tags { get; set; } = new();
+            public int SelectedProjectId { get; set; }
+            public string? ProjectKey { get; set; }
+        }
+    }
+}
+
+===== src\WebApp\MyWeb.WebApp\Controllers\Api\HistoryController.cs =====
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MyWeb.Persistence.Catalog;
+using MyWeb.Persistence.Historian;
+
+namespace MyWeb.WebApp.Controllers.Api
+{
+    [ApiController]
+    [Route("api/hist")]
+    [Authorize(Policy = "CanUseHistorian")] // eri?im kural?
+    public class HistoryController : ControllerBase
+    {
+        private readonly CatalogDbContext _catalog;
+        private readonly HistorianDbContext _hist;
+
+        public HistoryController(CatalogDbContext catalog, HistorianDbContext hist)
+        {
+            _catalog = catalog;
+            _hist = hist;
+        }
+
+        [HttpGet("projects")]
+        public async Task<IActionResult> GetProjects()
+        {
+            var data = await _catalog.Projects
+                .Select(p => new { p.Id, p.Key, p.Name, p.Version })
+                .ToListAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("tags")]
+        public async Task<IActionResult> GetTags([FromQuery] int projectId)
+        {
+            var data = await (
+                from t in _catalog.Tags
+                join a in _catalog.TagArchiveConfigs on t.Id equals a.TagId into ag
+                from a in ag.DefaultIfEmpty()
+                where t.ProjectId == projectId
+                orderby t.Path
+                select new
+                {
+                    t.Id,
+                    t.Path,
+                    t.Name,
+                    t.DataType,
+                    t.Unit,
+                    t.Address,
+                    Archive = a == null ? null : new
+                    {
+                        a.Mode,
+                        a.DeadbandAbs,
+                        a.DeadbandPercent,
+                        a.RetentionDays,
+                        a.RollupsJson
+                    }
+                }).ToListAsync();
+
+            return Ok(data);
+        }
+
+        // Ör: /api/hist/samples?tagId=1&from=2025-08-13T08:50:00Z&take=200
+        [HttpGet("samples")]
+        public async Task<IActionResult> GetSamples(
+            [FromQuery] int tagId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
+            [FromQuery] int take = 1000)
+        {
+            var q = _hist.Samples.Where(s => s.TagId == tagId);
+            if (from.HasValue) q = q.Where(s => s.Utc >= from.Value);
+            if (to.HasValue) q = q.Where(s => s.Utc <= to.Value);
+
+            var list = await q
+                .OrderByDescending(s => s.Utc)
+                .Take(Math.Clamp(take, 1, 5000))
+                .OrderBy(s => s.Utc)
+                .Select(s => new
+                {
+                    s.Utc,
+                    s.DataType,
+                    s.ValueNumeric,
+                    s.ValueText,
+                    s.ValueBool,
+                    s.Quality,
+                    s.Source
+                })
+                .ToListAsync();
+
+            return Ok(list);
+        }
+    }
+}
+
+===== src\WebApp\MyWeb.WebApp\Views\HistoryUi\Trend.cshtml =====
+@model MyWeb.WebApp.Controllers.HistoryUiController.TrendVm
+@{
+    ViewData["Title"] = "Trend";
+}
+
+<div class="row mb-3">
+    <div class="col">
+        <h4>Basit Trend</h4>
+        @if (ViewData["Error"] is string err)
+        {
+            <div class="alert alert-warning">@err</div>
+        }
+    </div>
+</div>
+
+<div class="row g-3 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label">Proje</label>
+        <select class="form-select" id="projectSelect">
+            @foreach (var p in Model.Projects)
+            {
+                <option value="@p.Id" selected="@(p.Id == Model.SelectedProjectId)">@p.Name (@p.Key)</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Tag</label>
+        <select class="form-select" id="tagSelect">
+            @foreach (var t in Model.Tags)
+            {
+                <option value="@t.Id">@t.Path</option>
+            }
+        </select>
+        @if (Model.Tags.Count == 0)
+        {
+            <small class="text-muted">Bu projede tag bulunamadı.</small>
+        }
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Başlangıç</label>
+        <input type="datetime-local" class="form-control" id="fromInput" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Bitiş</label>
+        <input type="datetime-local" class="form-control" id="toInput" />
+    </div>
+    <div class="col-md-1">
+        <button id="btnFetch" class="btn btn-primary w-100">Getir</button>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+<!-- Sabit ve makul bir yükseklik veriyoruz; Chart.js aspect ratio’yu zorlamasın -->
+<div id="trendWrap" style="height:420px; position:relative;">
+    <canvas id="trendChart" style="height:400px;"></canvas>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="~/js/history-trend.js" asp-append-version="true"></script>
+    <script>
+        // varsayılan aralık: son 24 saat (dün-bugün kıvamında çalışsın)
+        (function initDefaults(){
+            const to = new Date();
+            const from = new Date(to.getTime() - 24*60*60*1000);
+            const fmt = (d)=> new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            document.getElementById('fromInput').value = fmt(from);
+            document.getElementById('toInput').value = fmt(to);
+        })();
+
+        window.HISTORY_TREND_BOOT && window.HISTORY_TREND_BOOT({
+            endpoints: {
+                samples: (tagId, fromIso, toIso, take) =>
+                    `/api/hist/samples?tagId=${tagId}&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}&take=${take ?? 5000}`
+            }
+        });
+    </script>
+}
+
+===== src\WebApp\MyWeb.WebApp\wwwroot\js\history-trend.js =====
+(() => {
+    const $ = (sel) => document.querySelector(sel);
+
+    let chart;
+
+    function buildChart(ctx) {
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: []
+            },
+            options: {
+                parsing: false,
+                animation: false,
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            displayFormats: {
+                                minute: 'dd.MM HH:mm',
+                                hour: 'dd.MM HH:mm',
+                                day: 'dd.MM',
+                                week: 'dd.MM.yyyy'
+                            },
+                            tooltipFormat: 'dd.MM.yyyy HH:mm:ss'
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxRotation: 0
+                        }
+                    },
+                    y: {
+                        beginAtZero: false
+                    }
+                },
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+    }
+
+    async function fetchSamples(tagId, fromIsoUtc, toIsoUtc, take) {
+        const url = `/api/hist/samples?tagId=${tagId}&from=${encodeURIComponent(fromIsoUtc)}&to=${encodeURIComponent(toIsoUtc)}&take=${take ?? 5000}`;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+            const arr = await res.json();
+
+            const points = arr
+                .filter(r => r.valueNumeric !== null && r.valueNumeric !== undefined)
+                .map(r => ({
+                    x: new Date(r.utc),
+                    y: r.valueNumeric
+                }));
+
+            console.log('Fetched points (UTC):', points);
+            return points;
+        } catch (ex) {
+            console.error('Fetch samples failed:', ex);
+            throw ex;
+        }
+    }
+
+    async function fetchTags(projectId) {
+        const url = `/api/hist/tags?projectId=${projectId}`;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (ex) {
+            console.error('Fetch tags failed:', ex);
+            throw ex;
+        }
+    }
+
+    async function updateTags() {
+        const projectId = $('#projectSelect').value;
+        const tagSelect = $('#tagSelect');
+        try {
+            const tags = await fetchTags(projectId);
+            tagSelect.innerHTML = tags.map(t => `<option value="${t.id}">${t.path}</option>`).join('');
+            if (tags.length === 0) {
+                tagSelect.innerHTML = '<option value="">Tag bulunamadı</option>';
+            }
+        } catch (ex) {
+            tagSelect.innerHTML = '<option value="">Tag yüklenemedi</option>';
+            showError('Tag listesi yüklenemedi: ' + ex.message);
+        }
+    }
+
+    function localInputToIsoUtc(el) {
+        const d = new Date(el.value);
+        const offsetMs = d.getTimezoneOffset() * 60000;
+        return new Date(d.getTime() + offsetMs).toISOString(); // Değişiklik: - yerine + , kaymayı düzeltmek için
+    }
+
+    function showError(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-warning mt-3';
+        alertDiv.textContent = message;
+        $('#trendWrap').prepend(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    async function onGetir() {
+        const tagId = $('#tagSelect').value;
+        const fromInput = $('#fromInput');
+        const toInput = $('#toInput');
+        const fromIso = localInputToIsoUtc(fromInput);
+        const toIso = localInputToIsoUtc(toInput);
+
+        if (!fromInput.value || !toInput.value) {
+            showError('Başlangıç ve bitiş tarihlerini seçin.');
+            return;
+        }
+        if (new Date(fromIso) >= new Date(toIso)) {
+            showError('Bitiş tarihi başlangıç tarihinden sonra olmalıdır.');
+            return;
+        }
+        if (!tagId) {
+            showError('Lütfen bir tag seçin.');
+            return;
+        }
+
+        try {
+            const pts = await fetchSamples(tagId, fromIso, toIso, 5000);
+            chart.data.datasets = [{
+                label: $('#tagSelect option:checked').text,
+                data: pts,
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.15,
+                borderColor: '#36A2EB',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)'
+            }];
+            chart.options.scales.x.min = fromIso;
+            chart.options.scales.x.max = toIso;
+            chart.update();
+            console.log('Chart updated with UTC range:', { from: fromIso, to: toIso });
+        } catch (ex) {
+            showError('Veri yüklenemedi: ' + ex.message);
+        }
+    }
+
+    window.HISTORY_TREND_BOOT = (config) => {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        buildChart(ctx);
+
+        $('#projectSelect').addEventListener('change', updateTags);
+        $('#btnFetch').addEventListener('click', onGetir);
+
+        const to = new Date();
+        const from = new Date(to.getTime() - 24 * 60 * 60 * 1000);
+        const toLocalInput = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        $('#fromInput').value = toLocalInput(from);
+        $('#toInput').value = toLocalInput(to);
+
+        updateTags();
+    };
+})();
+
