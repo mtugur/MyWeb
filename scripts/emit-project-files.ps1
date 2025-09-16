@@ -1,123 +1,130 @@
 # scripts\emit-project-files.ps1
 param(
-  [string]$RepoRoot = "$PWD",              # Proje kökü
-  [string]$OutDir   = "$PWD\_export",      # Geçici üretim klasörü
+  [string]$RepoRoot = (Split-Path -Parent (Split-Path -Parent $PSCommandPath)), # ...\MyWeb
+  [string]$OutDir   = "$PWD\_export",
   [string]$DateTag  = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 )
 
+$ErrorActionPreference = "Stop"
 New-Item -Force -ItemType Directory -Path $OutDir | Out-Null
 
-# --- 01: PROJE ÖZETİ (kısa metin + ağaç) ---
+function Write-Lines {
+  param([string]$Path,[string[]]$Lines)
+  $dir = Split-Path -Parent $Path
+  if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+  Set-Content -Path $Path -Value $Lines -Encoding UTF8
+}
+
+function Get-Tree {
+  param([string]$Base,[string[]]$IncludeExt=@())
+  $files = Get-ChildItem -Path $Base -Recurse -File -ErrorAction SilentlyContinue
+  if ($IncludeExt.Count -gt 0) {
+    $files = $files | Where-Object { $IncludeExt -contains $_.Extension }
+  }
+  $files | Sort-Object FullName | ForEach-Object {
+    $_.FullName.Replace($RepoRoot, '').TrimStart('\')
+  }
+}
+
+# ---------- 01: PROJE ÖZETİ ----------
 $ozet = @()
 $ozet += "PROJE OZETI - $DateTag"
 $ozet += "------------------------------------------------------------"
-$ozet += "Amaç: PLC verisini okuma → arşivleme → sorgu → trend UI."
-$ozet += "Katmanlar: Core, Infrastructure(Persistence), Modules(Comm), Runtime, WebApp."
-$ozet += "DB: SQL Server (MyWeb), Şemalar: catalog, hist."
-$ozet += "Ana URL: http://localhost:5113  | Swagger: /swagger"
+$ozet += "Amaç: PLC verisi → arşiv → sorgu → trend UI (SCADA/MES)."
+$ozet += "Katmanlar: Core, Infrastructure(Persistence/Identity), Modules(Comm), Runtime, WebApp."
+$ozet += "DB: SQL Server (MyWeb). Şemalar: catalog, hist, auth."
 $ozet += ""
-$ozet | Set-Content "$OutDir\01-PROJE-OZETI.txt" -Encoding UTF8
-cmd /c "tree /F /A > `"$OutDir\_tree.txt`""
-Add-Content "$OutDir\01-PROJE-OZETI.txt" "`n--- KLASOR AGACI ---`n"
-Add-Content "$OutDir\01-PROJE-OZETI.txt" (Get-Content "$OutDir\_tree.txt")
-Remove-Item "$OutDir\_tree.txt" -Force
+$ozet += "AĞAÇ:"
+$ozet += Get-Tree -Base "$RepoRoot\src" -IncludeExt @(".sln",".cs",".csproj",".json",".cshtml",".js")
+Write-Lines -Path "$OutDir\01-PROJE-OZETI.txt" -Lines $ozet
 
-# --- 02: PROJE SABITLERI ---
+# ---------- 02: PROJE SABITLERI ----------
+$launch = "$RepoRoot\src\WebApp\MyWeb.WebApp\Properties\launchSettings.json"
+$urls = @()
+if (Test-Path $launch) {
+  $j = Get-Content $launch -Raw | ConvertFrom-Json
+  $urls = ($j.profiles.'MyWeb.WebApp'.applicationUrl -split ';')
+}
+$swaggerHttp  = ($urls | Where-Object {$_ -like 'http://*'})  | Select-Object -First 1
+$swaggerHttps = ($urls | Where-Object {$_ -like 'https://*'}) | Select-Object -First 1
 $sabit = @()
+$sa = "$RepoRoot\src\WebApp\MyWeb.WebApp\appsettings.json"
+$sad = "$RepoRoot\src\WebApp\MyWeb.WebApp\appsettings.Development.json"
+$cs = @()
+foreach($p in @($sa,$sad)) {
+  if(Test-Path $p){ $cs += (Get-Content $p -Raw) }
+}
 $sabit += "PROJE SABITLERI - $DateTag"
-$sabit += "------------------------------------------------------------"
-$sabit += "Repo: (GitHub linkini buraya yaz)"
-$sabit += "Lokal Kök: $RepoRoot"
-$sabit += "PLC: IP=192.168.1.113, Rack=0, Slot=1, CPU=S71500 (örnek)"
-$sabit += "DB: Server=localhost; Database=MyWeb; Trusted_Connection=True"
-$sabit += "Swagger: http://localhost:5113/swagger"
-$sabit | Set-Content "$OutDir\02-PROJE-SABITLERI.txt" -Encoding UTF8
+$sepline = "------------------------------------------------------------"
+$sabit += $sepline
+$sabit += "Swagger(HTTP):  " + ($swaggerHttp  ? "$swaggerHttp/swagger"  : "n/a")
+$sabit += "Swagger(HTTPS): " + ($swaggerHttps ? "$swaggerHttps/swagger" : "n/a")
+$sabit += $sepline
+$sabit += "ConnectionStrings (raw json):"
+$sabit += $cs
+Write-Lines "$OutDir\02-PROJE-SABITLERI.txt" $sabit
 
-# --- Yardımcı: bir katman içeriğini üret (özet + ağaç + seçili dosya içerikleri) ---
+# ---------- Katman içeriği yardımcı ----------
 function Emit-Layer {
   param(
-    [string]$LayerName,
-    [string]$SourceDir,
-    [string[]]$IncludeExt = @(".cs",".csproj",".json",".sql",".md"),
-    [string[]]$MustHave   = @()  # daima eklenecek önemli dosyalar (göreli yol)
+    [string]$Title,
+    [string[]]$Paths
   )
-  $outFile = "{0}\{1}" -f $OutDir, $LayerName
-  $head = @()
-  $head += "$LayerName - $DateTag"
-  $head += "------------------------------------------------------------"
-  $head += "Kaynak: $SourceDir"
-  $head += ""
-  $head | Set-Content $outFile -Encoding UTF8
-
-  # Klasör ağacı
-  $tmpTree = Join-Path $OutDir "_tree_$LayerName.txt"
-  cmd /c "tree /F /A `"$SourceDir`" > `"$tmpTree`""
-  Add-Content $outFile "`n--- KLASOR AGACI ---`n"
-  Add-Content $outFile (Get-Content $tmpTree)
-  Remove-Item $tmpTree -Force
-
-  # Önemli dosyalar (MustHave) + kritik uzantılar
-  $files = Get-ChildItem -Path $SourceDir -Recurse -File |
-           Where-Object { $IncludeExt -contains $_.Extension } |
-           Sort-Object FullName
-
-  # MustHave öne
-  $must = @()
-  foreach($rel in $MustHave){
-    $f = Join-Path $SourceDir $rel
-    if (Test-Path $f){ $must += Get-Item $f }
+  $lines = @()
+  $lines += "$Title - $DateTag"
+  $lines += "----------------------------------------------"
+  foreach($path in $Paths){
+    if(Test-Path $path){
+      $lines += ""
+      $lines += "===== FILE: " + $path.Replace($RepoRoot,'').TrimStart('\') + " ====="
+      $lines += Get-Content $path -Raw
+    }
   }
-  $files = $must + ($files | Where-Object { $must -notcontains $_ })
-
-  # İçerikleri ekle (boyut limitine yaklaşırsa parçalara bölebilirsin)
-  foreach($f in $files){
-    Add-Content $outFile "`n=================================================="
-    Add-Content $outFile "Dosya: $($f.FullName.Replace($RepoRoot + '\', ''))"
-    Add-Content $outFile "==================================================`n"
-    # Büyük dosyaları kısmen almak istersen burada kısıt koyabilirsin.
-    Add-Content $outFile (Get-Content -Raw $f.FullName)
-  }
-
-  return $outFile
+  return ,$lines
 }
 
-# Katman başlıkları ve kaynak klasörleri (projene göre güncel)
-$L_CORE  = Emit-Layer -LayerName "10-CORE_ICERIGI.txt"            -SourceDir "$RepoRoot\src\Core\MyWeb.Core" `
-                      -MustHave @("MyWeb.Core.csproj")
-$L_INFRA = Emit-Layer -LayerName "20-INFRASTRUCTURE_ICERIGI.txt"   -SourceDir "$RepoRoot\src\Infrastructure\MyWeb.Infrastructure.Data" `
-                      -MustHave @("MyWeb.Persistence.csproj","Historian\HistorianDbContext.cs","Historian\Entities\Sample.cs","Catalog\CatalogDbContext.cs")
-$L_MOD   = Emit-Layer -LayerName "30-MODULES_ICERIGI.txt"          -SourceDir "$RepoRoot\src\Modules" `
-                      -MustHave @("Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj")
-$L_RUN   = Emit-Layer -LayerName "40-RUNTIME_ICERIGI.txt"          -SourceDir "$RepoRoot\src\Runtime\MyWeb.Runtime" `
-                      -MustHave @("MyWeb.Runtime.csproj","ServiceCollectionExtensions.cs","History\HistoryWriterOptions.cs","Services\RetentionCleanerService.cs")
-$L_WEB   = Emit-Layer -LayerName "50-WEBAPP_ICERIGI.txt"           -SourceDir "$RepoRoot\src\WebApp\MyWeb.WebApp" `
-                      -MustHave @("MyWeb.WebApp.csproj","Program.cs","Controllers\Api\HistoryController.cs","Views\Shared\_Layout.cshtml")
+# ---------- 10-CORE ----------
+$coreFiles = Get-ChildItem "$RepoRoot\src\Core\MyWeb.Core" -Recurse -File -Include *.cs,*.csproj -ErrorAction SilentlyContinue | % FullName
+Write-Lines "$OutDir\10-CORE_ICERIGI.txt" (Emit-Layer -Title "CORE" -Paths $coreFiles)
 
-# --- STATE (tek dosya) ---
-$branch = (git rev-parse --abbrev-ref HEAD) 2>$null
-$sha    = (git rev-parse --short HEAD) 2>$null
-$last10 = (git log --oneline -10) 2>$null
-$state  = @()
-$state += "_STATE_SNAPSHOT - $DateTag"
-$state += "Branch: $branch"
-$state += "SHA:    $sha"
-$state += ""
-$state += "--- LAST 10 COMMITS ---"
-$state += $last10
-$state | Set-Content "$OutDir\_STATE_SNAPSHOT.txt" -Encoding UTF8
+# ---------- 20-INFRASTRUCTURE (Catalog/Hist + Identity/Auth) ----------
+$infraFiles = @()
+$infraFiles += Get-ChildItem "$RepoRoot\src\Infrastructure\MyWeb.Infrastructure.Data" -Recurse -File -Include *.cs,*.csproj -ErrorAction SilentlyContinue | % FullName
+Write-Lines "$OutDir\20-INFRASTRUCTURE_ICERIGI.txt" (Emit-Layer -Title "INFRASTRUCTURE" -Paths $infraFiles)
 
-# --- MANIFEST ---
-$manifest = @{
+# ---------- 30-MODULES (Siemens) ----------
+$modFiles = Get-ChildItem "$RepoRoot\src\Modules\Communication.Siemens\MyWeb.Communication.Siemens" -Recurse -File -Include *.cs,*.csproj -ErrorAction SilentlyContinue | % FullName
+Write-Lines "$OutDir\30-MODULES_ICERIGI.txt" (Emit-Layer -Title "MODULES" -Paths $modFiles)
+
+# ---------- 40-RUNTIME ----------
+$rtFiles = Get-ChildItem "$RepoRoot\src\Runtime\MyWeb.Runtime" -Recurse -File -Include *.cs,*.csproj -ErrorAction SilentlyContinue | % FullName
+Write-Lines "$OutDir\40-RUNTIME_ICERIGI.txt" (Emit-Layer -Title "RUNTIME" -Paths $rtFiles)
+
+# ---------- 50-WEBAPP (Program/AuthSetup/Controllers/Views/wwwroot/js) ----------
+$webList = @(
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Program.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Infrastructure\AuthSetup.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Controllers\AccountController.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Controllers\HistoryUiController.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Controllers\Api\HistoryController.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Views\HistoryUi\Trend.cshtml",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\wwwroot\js\history-trend.js",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\appsettings.json",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\appsettings.Development.json",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\MyWeb.WebApp.csproj"
+) + (Get-ChildItem "$RepoRoot\src\WebApp\MyWeb.WebApp" -Recurse -File -Include *.cs,*.cshtml -ErrorAction SilentlyContinue | % FullName)
+Write-Lines "$OutDir\50-WEBAPP_ICERIGI.txt" (Emit-Layer -Title "WEBAPP" -Paths ($webList | Select-Object -Unique))
+
+# ---------- 90-INDEX-MANIFEST.json ----------
+$manifest = [ordered]@{
   generatedAt = $DateTag
-  branch      = "$branch"
-  sha         = "$sha"
-  files = @(
-    "01-PROJE-OZETI.txt","02-PROJE-SABITLERI.txt",
-    "10-CORE_ICERIGI.txt","20-INFRASTRUCTURE_ICERIGI.txt",
-    "30-MODULES_ICERIGI.txt","40-RUNTIME_ICERIGI.txt","50-WEBAPP_ICERIGI.txt",
-    "_STATE_SNAPSHOT.txt"
-  )
+  files = @{}
 }
-$manifest | ConvertTo-Json -Depth 5 | Set-Content "$OutDir\90-INDEX-MANIFEST.json" -Encoding UTF8
+Get-ChildItem $OutDir -File | ForEach-Object {
+  $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+  $manifest.files[$_.Name] = @{ size=$_.Length; sha256=$h }
+}
+$manifestJson = ($manifest | ConvertTo-Json -Depth 5)
+Write-Lines "$OutDir\90-INDEX-MANIFEST.json" $manifestJson
 
-Write-Host "Hazır: $OutDir (Project Files'a yükleyebilirsin)"
+Write-Host "[OK] _export üretildi → $OutDir"

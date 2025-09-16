@@ -1,56 +1,86 @@
-﻿Param(
-  [string]$OutDir = "$(Split-Path -Path $PSScriptRoot -Parent)\_packages"
+﻿param(
+  [string]$RepoRoot = (Split-Path -Parent (Split-Path -Parent $PSCommandPath))
 )
 
 $ErrorActionPreference = "Stop"
 
-# Repo kökü
-$RepoRoot = Resolve-Path "$(Split-Path -Path $PSScriptRoot -Parent)"
+$pkgRoot = "$RepoRoot\_packages"
+$outDir  = "$RepoRoot\_export"
+New-Item -ItemType Directory -Force -Path $pkgRoot | Out-Null
 
-# Çıktı klasörünü hazırla
-if (-not (Test-Path $OutDir)) {
-  New-Item -ItemType Directory -Path $OutDir | Out-Null
+# _export yoksa üret
+if (-not (Test-Path $outDir)) {
+  powershell -ExecutionPolicy Bypass -File ".\scripts\emit-project-files.ps1" -RepoRoot $RepoRoot -OutDir $outDir | Out-Null
 }
 
-# Basit demo paket içeriği (örnek)
-$pkgName = "demo.mywebpkg"
-$pkgPath = Join-Path $OutDir $pkgName
+# Proje/Tag snapshot (demo)
+$projJson = "$pkgRoot\projects.json"
+$tagsJson = "$pkgRoot\tags.json"
 
-# Geçici çalışma klasörü
-$temp = Join-Path $OutDir "_tmp_pkg"
-if (Test-Path $temp) { Remove-Item -Recurse -Force $temp }
+# Basit JSON: WebApp endpoints’ı tüketen bir istemci için minimal metadata
+$projects = @()
+$tags     = @()
+
+try {
+  $cs = "Server=.;Database=MyWeb;Trusted_Connection=True;Encrypt=False"
+  $projects = sqlcmd -S "." -d "MyWeb" -E -l 5 -W -h -1 `
+      -Q "SELECT Id, Key, Name FROM catalog.Projects ORDER BY Id" 2>$null | 
+      ForEach-Object { if($_){ $p=$_ -split '\s{2,}'; [pscustomobject]@{ Id=$p[0]; Key=$p[1]; Name=($p[2..($p.length-1)] -join ' ') } }
+  $tags = sqlcmd -S "." -d "MyWeb" -E -l 5 -W -h -1 `
+      -Q "SELECT TOP 500 Id, ProjectId, Path, Name, DataType FROM catalog.Tags ORDER BY Path" 2>$null | 
+      ForEach-Object { if($_){ $t=$_ -split '\s{2,}'; [pscustomobject]@{ Id=$t[0]; ProjectId=$t[1]; Path=$t[2]; Name=$t[3]; DataType=$t[4] } }
+} catch { }
+
+$projects | ConvertTo-Json | Set-Content $projJson -Encoding UTF8
+$tags     | ConvertTo-Json | Set-Content $tagsJson -Encoding UTF8
+
+# Manifest
+$manifest = [ordered]@{
+  name        = "MyWeb-Stage1-Demo"
+  generatedAt = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+  endpoints   = @{
+    whoami   = "/api/hist/whoami"
+    projects = "/api/hist/projects"
+    tags     = "/api/hist/tags?projectId={id}"
+    samples  = "/api/hist/samples?tagId={id}&from={iso}&to={iso}&take=1000"
+  }
+  auth        = @{
+    type = "Cookie"
+    loginUrl = "/account/login"
+    policy = "CanUseHistorian"
+    roles  = @("Admin","Operator")
+  }
+  files = @(
+    "_export/01-PROJE-OZETI.txt",
+    "_export/02-PROJE-SABITLERI.txt",
+    "_export/10-CORE_ICERIGI.txt",
+    "_export/20-INFRASTRUCTURE_ICERIGI.txt",
+    "_export/30-MODULES_ICERIGI.txt",
+    "_export/40-RUNTIME_ICERIGI.txt",
+    "_export/50-WEBAPP_ICERIGI.txt",
+    "_export/90-INDEX-MANIFEST.json",
+    "projects.json",
+    "tags.json"
+  )
+}
+$manifestPath = "$pkgRoot\manifest.json"
+$manifest | ConvertTo-Json -Depth 5 | Set-Content $manifestPath -Encoding UTF8
+
+# Paketle
+$zipPath = "$pkgRoot\MyWeb-Stage1-Demo.mywebpkg"
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+$temp = Join-Path $pkgRoot "_tmp_pkg"
+if (Test-Path $temp) { Remove-Item $temp -Recurse -Force }
 New-Item -ItemType Directory -Path $temp | Out-Null
 
-# Minimal manifest ve içerikler
-$manifest = @{
-  Id        = "Demo.Plant"
-  Name      = "Demo Plant"
-  Version   = "1.0.0"
-  CreatedUtc= (Get-Date).ToUniversalTime().ToString("o")
-} | ConvertTo-Json -Depth 5
+Copy-Item -Recurse -Force $outDir "$temp\_export"
+Copy-Item $projJson  "$temp\projects.json"
+Copy-Item $tagsJson  "$temp\tags.json"
+Copy-Item $manifestPath "$temp\manifest.json"
 
-$controllersJson = @(
-  @{ Name="HistoryController"; Route="/api/hist"; Version="1.0.0" }
-) | ConvertTo-Json -Depth 5
+[System.IO.Compression.ZipFile]::CreateFromDirectory($temp, $zipPath)
+Remove-Item $temp -Recurse -Force
 
-$tagsJson = @(
-  @{ Name="tBool";   Path="Demo/tBool";   DataType=0; Address="DB1000.DBX0.0"; LongString=$false }
-  @{ Name="tInt";    Path="Demo/tInt";    DataType=1; Address="DB1000.DBW16";  LongString=$false }
-  @{ Name="tDInt";   Path="Demo/tDInt";   DataType=1; Address="DB1000.DBD30";  LongString=$false }
-  @{ Name="tReal";   Path="Demo/tReal";   DataType=2; Address="DB1000.DBD42";  LongString=$false }
-  @{ Name="tString"; Path="Demo/tString"; DataType=3; Address="DB1000.DBB54";  LongString=$false }
-) | ConvertTo-Json -Depth 5
-
-Set-Content -Path (Join-Path $temp "manifest.json") -Value $manifest -Encoding UTF8
-Set-Content -Path (Join-Path $temp "controllers.json") -Value $controllersJson -Encoding UTF8
-Set-Content -Path (Join-Path $temp "tags.json") -Value $tagsJson -Encoding UTF8
-
-# Paketle (zip uzantısız mywebpkg)
-if (Test-Path $pkgPath) { Remove-Item $pkgPath -Force }
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::CreateFromDirectory($temp, $pkgPath)
-
-# Temizle
-Remove-Item -Recurse -Force $temp
-
-Write-Host "[INFO] Demo paket üretildi: $pkgPath"
+Write-Host "[OK] Demo paket üretildi: $zipPath"

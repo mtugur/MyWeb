@@ -1,6 +1,6 @@
 Param(
-  [Parameter(Mandatory=$true)]
-  [string]$Message
+  [Parameter(Mandatory=$true)][string]$Message,
+  [switch]$NoPush    # İstersen push'u kapatmak için: -NoPush
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,127 +9,169 @@ function Info($m){ Write-Host "[INFO] $m" }
 function Warn($m){ Write-Host "[WARN] $m" -ForegroundColor Yellow }
 function Err ($m){ Write-Host "[ERR ] $m"  -ForegroundColor Red }
 
-# Repo kökü = bu scriptin üst klasörü
+# === Kök ve klasörler ===
 $ScriptDir = Split-Path -Parent $PSCommandPath
 $RepoRoot  = Split-Path -Parent $ScriptDir
 Set-Location $RepoRoot
-Info "Çalışma dizini: $RepoRoot"
 
-# 1) Build (Release)
-Info "dotnet build (Release) başlıyor…"
-dotnet build .\src\WebApp\MyWeb.WebApp\MyWeb.WebApp.csproj -c Release | Out-Null
-Info "dotnet build OK."
+$stateDir    = "$RepoRoot\_state"
+$snapRoot    = "$stateDir\snapshots"
+$exportDir   = "$RepoRoot\_export"
+New-Item -ItemType Directory -Force -Path $stateDir  | Out-Null
 
-# 2) Git bilgisi (fail olsa da devam)
-$branch = "<unknown>"
-$sha    = "<unknown>"
-try {
-  $branch = $(git rev-parse --abbrev-ref HEAD).Trim()
-  $sha    = $(git rev-parse --short HEAD).Trim()
-} catch {
-  Warn "git bilgileri alınamadı: git  hata:"
+# === 0) Razor/obj-temizliği (düzeltildi) ===
+# -Filter tek değer alır, bu yüzden isim süzgecini Where-Object ile yapıyoruz.
+Get-ChildItem -Path "$RepoRoot\src" -Recurse -Directory -ErrorAction SilentlyContinue |
+  Where-Object { $_.Name -in @('obj','bin') } |
+  Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+
+# === 1) Build (Release) ===
+Info "dotnet build -c Release"
+$buildOut = dotnet build .\MyWeb.sln -c Release 2>&1
+$buildOut | Set-Content "$stateDir\BUILD.txt" -Encoding UTF8
+if ($LASTEXITCODE -ne 0) { Err "Build FAILED ($LASTEXITCODE)"; throw "Build failed" }
+
+# === 2) _state temizlik: kökte dağınık snapshot'ları sil ===
+Info "Temizlik: kökteki *.snapshot.txt dosyaları siliniyor"
+Get-ChildItem $stateDir -File -Filter *.snapshot.txt -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+
+# snapshots/ klasörünü sıfırla
+if (Test-Path $snapRoot) {
+  Info "Temizlik: snapshots/ reset"
+  Remove-Item $snapRoot -Recurse -Force
 }
+New-Item -ItemType Directory -Force -Path $snapRoot | Out-Null
 
-# 3) _state klasörünü hazırla
-$state = Join-Path $RepoRoot "_state"
-if (-not (Test-Path $state)) { New-Item -ItemType Directory -Path $state | Out-Null }
+# === 3) Önemli dosyaların snapshot'ları ===
+$Important = @(
+  # WEBAPP
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Program.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Infrastructure\AuthSetup.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Controllers\AccountController.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Controllers\HistoryUiController.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Controllers\Api\HistoryController.cs",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\Views\HistoryUi\Trend.cshtml",
+  "$RepoRoot\src\WebApp\MyWeb.WebApp\wwwroot\js\history-trend.js",
 
-# 4) DB şema + örnek veri
-Info "DB şema ve örnek veri çekiliyor (localhost/MyWeb)…"
-$schemaSql = @"
-EXEC sp_help 'hist.Samples';
-SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA='hist' AND TABLE_NAME='Samples';
-SELECT TOP(5) Id, ProjectId, TagId, Utc, ValueNumeric, ValueText, ValueBool, Quality, Source
-FROM hist.Samples
-ORDER BY Id DESC;
-"@
-$sqlFile = Join-Path $state "DB_SCHEMA.txt"
-$sqlcmd = "sqlcmd -S localhost -d MyWeb -W -w 512 -Q ""$($schemaSql.Replace('"','\"'))"""
-cmd /c $sqlcmd > $sqlFile 2>&1
+  # RUNTIME
+  "$RepoRoot\src\Runtime\MyWeb.Runtime\ServiceCollectionExtensions.cs",
+  "$RepoRoot\src\Runtime\MyWeb.Runtime\Services\TagSamplingService.cs",
+  "$RepoRoot\src\Runtime\MyWeb.Runtime\Services\HistoryWriterService.cs",
+  "$RepoRoot\src\Runtime\MyWeb.Runtime\Services\RetentionCleanerService.cs",
 
-# 5) Son log kopyası (varsa)
-$logDir = Join-Path $RepoRoot "src\WebApp\MyWeb.WebApp\Logs"
-if (Test-Path $logDir) {
-  $latest = Get-ChildItem -Path $logDir -Filter "app-*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-  if ($latest) {
-    $dst = Join-Path $state "LOG_LASTRUN.txt"
-    Copy-Item $latest.FullName $dst -Force
-    Info "Log kopyalanıyor: $($latest.Name)"
-  }
-}
-
-# 6) Snapshot seti
-$snapList = @(
-  "src\WebApp\MyWeb.WebApp\Program.cs",
-  "src\Runtime\MyWeb.Runtime\ServiceCollectionExtensions.cs",
-  "src\Runtime\MyWeb.Runtime\Services\TagSamplingService.cs",
-  "src\Runtime\MyWeb.Runtime\History\HistoryWriterService.cs",
-  "src\Runtime\MyWeb.Runtime\Services\RetentionCleanerService.cs",
-  "src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\SiemensCommunicationChannel.cs",
-  "src\WebApp\MyWeb.WebApp\Controllers\HistoryUiController.cs",
-  "src\WebApp\MyWeb.WebApp\Views\HistoryUi\Trend.cshtml",
-  "src\WebApp\MyWeb.WebApp\wwwroot\js\history-trend.js",
-  "src\WebApp\MyWeb.WebApp\appsettings.json",
-  "src\WebApp\MyWeb.WebApp\appsettings.Development.json"
+  # MODULES
+  "$RepoRoot\src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\SiemensCommunicationChannel.cs"
 )
-foreach($p in $snapList){
-  $src = Join-Path $RepoRoot $p
-  if(Test-Path $src){
-    $safe = ($p -replace '[\\/:*?"<>| ]','_')
-    $dst = Join-Path $state "$safe.snapshot.txt"
-    Copy-Item $src $dst -Force
-    Info "Snapshot: $p -> $((Split-Path -Leaf $dst))"
-  }
+
+foreach($src in $Important){
+  if (-not (Test-Path $src)) { continue }
+  $rel     = $src.Replace($RepoRoot, '').TrimStart('\')
+  $destDir = Join-Path $snapRoot (Split-Path $rel -Parent)
+  New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+  $dest    = Join-Path $snapRoot ($rel + ".snapshot.txt")
+
+  $header = @()
+  $header += "===== SNAPSHOT: $rel ====="
+  $header += (Get-Date -Format "yyyy-MM-dd HH:mm:ss 'UTC'zzz")
+  $header += "----------------------------------------"
+  $content = Get-Content $src -Raw
+  ($header -join "`r`n") + "`r`n" + $content | Set-Content $dest -Encoding UTF8
 }
 
-# 7) _export üret (projeyi düz metin olarak dışa aktar)
-Info "emit-project-files.ps1 çalıştırılıyor…"
-& "$ScriptDir\emit-project-files.ps1"
-
-# 8) DEMO paket tek yerden üret: .\_packages
-$rootPackages = Join-Path $RepoRoot "_packages"
-if (-not (Test-Path $rootPackages)) {
-  New-Item -ItemType Directory -Path $rootPackages | Out-Null
+# === 4) LOG kopyası (varsa) ===
+$logDir = "$RepoRoot\src\WebApp\MyWeb.WebApp\Logs"
+if (Test-Path $logDir) {
+  $lastLog = Get-ChildItem $logDir -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+  if ($lastLog) { Copy-Item $lastLog.FullName "$stateDir\LOG_LASTRUN.txt" -Force }
 }
 
-# (Eski) scripts\_packages varsa taşı ve sil
-$oldPkg = Join-Path $ScriptDir "_packages"
-if (Test-Path $oldPkg) {
-  Get-ChildItem $oldPkg -File | ForEach-Object {
-    Move-Item -Force $_.FullName (Join-Path $rootPackages $_.Name)
-  }
-  Remove-Item -Recurse -Force $oldPkg
+# === 5) DB snapshot (auth/catalog/hist) ===
+function Invoke-Sql {
+  param([string]$Server,[string]$Db,[string]$Query)
+  sqlcmd -S $Server -d $Db -E -l 5 -h -1 -W -Q $Query 2>$null
 }
 
-Info "make-demo-pkg.ps1 çalıştırılıyor…"
-& "$ScriptDir\make-demo-pkg.ps1" -OutDir $rootPackages
+$DbName = "MyWeb"
+$server = $null
+foreach($s in @(".", "(localdb)\MSSQLLocalDB", "localhost,1433")){
+  try{
+    $r = Invoke-Sql -Server $s -Db "master" -Query "SELECT 1"
+    if ($LASTEXITCODE -eq 0 -and $r -match '1'){ $server = $s; break }
+  } catch {}
+}
 
-# 9) _state meta
-Set-Content -Path (Join-Path $state "BUILD.txt")     -Value "Release build: OK" -Encoding UTF8
-Set-Content -Path (Join-Path $state "STATUS.txt")    -Value "Branch=$branch, SHA=$sha, When=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Encoding UTF8
-Set-Content -Path (Join-Path $state "GIT_BRANCH.txt")-Value $branch -Encoding UTF8
-Set-Content -Path (Join-Path $state "GIT_SHA.txt")   -Value $sha    -Encoding UTF8
+if ($server) {
+  Info "SQL Server: $server / DB: $DbName"
+  $dbInfo = @()
+  $dbInfo += "SERVER=$server DB=$DbName"
+  $dbInfo += "---- Şemalar ----"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT s.name FROM sys.schemas s ORDER BY s.name")
+  $dbInfo += ""
+  $dbInfo += "---- auth tabloları ----"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='auth' ORDER BY TABLE_NAME")
+  $dbInfo += ""
+  $dbInfo += "---- catalog tabloları ----"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='catalog' ORDER BY TABLE_NAME")
+  $dbInfo += ""
+  $dbInfo += "---- hist tabloları ----"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='hist' ORDER BY TABLE_NAME")
+  $dbInfo += ""
+  $dbInfo += "---- örnek veriler ----"
+  $dbInfo += "[auth.Users] TOP 5:"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT TOP 5 Id,UserName,Email,EmailConfirmed,AccessFailedCount FROM auth.Users ORDER BY Id")
+  $dbInfo += ""
+  $dbInfo += "[catalog.Projects] TOP 5:"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT TOP 5 Id,Key,Name FROM catalog.Projects ORDER BY Id")
+  $dbInfo += ""
+  $dbInfo += "[catalog.Tags] TOP 5:"
+  $dbInfo += (Invoke-Sql -Server $server -Db $DbName -Query "SELECT TOP 5 Id,ProjectId,Path,Name,DataType FROM catalog.Tags ORDER BY Path")
 
-# 10) Git add/commit/push
-Info "git add ."
-git add .
+  Set-Content -Path "$stateDir\DB_SCHEMA.txt" -Value $dbInfo -Encoding UTF8
+}
+else {
+  Warn "SQL Server bulunamadı; DB snapshot atlandı."
+}
 
-$stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-$commitMsg = "[STATE] $Message | $stamp"
-Info "git commit -m `"$commitMsg`""
-git commit -m "$commitMsg" | Out-Null
+# === 6) _export üret ===
+Info "emit-project-files.ps1 çalıştırılıyor"
+powershell -ExecutionPolicy Bypass -File ".\scripts\emit-project-files.ps1" -RepoRoot $RepoRoot -OutDir $exportDir | Out-Null
 
-Info "git push"
-git push
+# === 7) Özet / STATUS ===
+$branch = (git rev-parse --abbrev-ref HEAD 2>$null)
+$sha    = (git rev-parse --short HEAD 2>$null)
 
-# 11) Özet
+$state = @()
+$state += "STATE SNAPSHOT"
+$state += "Date   : " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+$state += "Branch : $branch"
+$state += "SHA    : $sha"
+$state += ""
+$state += "Build  : PASS"
+$state += "Export : $exportDir"
+Set-Content "$stateDir\_STATE_SNAPSHOT.txt" -Value $state -Encoding UTF8
+
+$stat = @()
+$stat += "Aşama: Stage-1 (Auth/RBAC + UI/API)"
+$stat += "Build: PASS"
+$stat += "Notes: snapshots klasörü temiz ve güncel."
+Set-Content "$stateDir\STATUS.txt" -Value $stat -Encoding UTF8
+
+# === 8) Git ===
+Info "git add"
+git add -A
+
+Info "git commit"
+git commit -m $Message | Out-Null
+
+if (-not $NoPush) {
+  Info "git push"
+  git push
+} else {
+  Warn "git push atlandı (-NoPush)"
+}
+
 Write-Host ""
 Write-Host "==== ÖZET ===="
-Write-Host "Branch : $branch"
-Write-Host "SHA    : $sha"
-Write-Host "_state  : güncellendi"
-Write-Host "_export : güncellendi"
-Write-Host "Paket  : $rootPackages"
-Write-Host "Git    : push OK"
+Write-Host "_state  : düzenlendi (snapshots reset)"
+Write-Host "_export : üretildi"
+Write-Host "git     : commit $(if($NoPush){'(no push)'}else{'& push'})"

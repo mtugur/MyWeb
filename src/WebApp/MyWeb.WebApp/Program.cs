@@ -1,17 +1,20 @@
-﻿using MyWeb.Runtime;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection; // CreateScope/GetRequiredService
 using Microsoft.Extensions.Options;
-using MyWeb.Core.Communication;
 using MyWeb.Communication.Siemens;
+using MyWeb.Core.Communication;
 using MyWeb.Persistence.Catalog;
 using MyWeb.Persistence.Historian;
+using MyWeb.Runtime;
+using MyWeb.WebApp.Infrastructure;            // AddMyWebAuth
+using MyWeb.Infrastructure.Data.Identity;     // IdentityDb (auth şeması)
 using Serilog;
-
-// Runtime extension (HostedService/Bootstrap kayıtları için)
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// --- Kimlik / Yetkilendirme (Cookie + Identity) ---
+builder.Services.AddMyWebAuth(builder.Configuration);
 
 // --- Kod sayfaları (ör. CP1254) ---
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -105,6 +108,9 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// --- Kimlik middleware (ÖNCE Authentication, sonra Authorization) ---
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -119,11 +125,13 @@ using (var scope = app.Services.CreateScope())
 {
     var catalog = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
     var hist = scope.ServiceProvider.GetRequiredService<HistorianDbContext>();
+    var authDb = scope.ServiceProvider.GetRequiredService<IdentityDb>();
 
     try
     {
         catalog.Database.Migrate();
         hist.Database.Migrate();
+        authDb.Database.Migrate(); // ← auth şeması (Identity)
     }
     catch (Exception ex)
     {
@@ -134,4 +142,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-

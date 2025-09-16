@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyWeb.Persistence.Catalog;
 
@@ -15,6 +16,7 @@ namespace MyWeb.WebApp.Controllers
         }
 
         // /history/trend?projectKey=Demo.Plant
+        [AllowAnonymous]
         [HttpGet("trend")]
         public async Task<IActionResult> Trend([FromQuery] string? projectKey = null, CancellationToken ct = default)
         {
@@ -24,21 +26,33 @@ namespace MyWeb.WebApp.Controllers
                 .Select(p => new ProjectVm { Id = p.Id, Key = p.Key!, Name = p.Name! })
                 .ToListAsync(ct);
 
-            if (projects.Count == 0)
+            int selectedProjectId;
+            if (!string.IsNullOrWhiteSpace(projectKey))
             {
-                ViewData["Error"] = "Katalogda proje bulunamadı. Bootstrap/demo SQL’ini çalıştırın.";
-                return View("Trend", new TrendVm());
-            }
+                selectedProjectId = await _catalog.Projects
+                    .Where(p => p.Key == projectKey)
+                    .Select(p => p.Id)
+                    .FirstOrDefaultAsync(ct);
 
-            int selectedProjectId =
-                projects.FirstOrDefault(p => !string.IsNullOrWhiteSpace(projectKey) && p.Key == projectKey)?.Id
-                ?? projects[0].Id;
+                if (selectedProjectId == 0)
+                    selectedProjectId = projects.FirstOrDefault()?.Id ?? 0;
+            }
+            else
+            {
+                selectedProjectId = projects.FirstOrDefault()?.Id ?? 0;
+            }
 
             var tags = await _catalog.Tags
                 .AsNoTracking()
-                .Where(t => t.ProjectId == selectedProjectId)
+                .Where(t => selectedProjectId == 0 || t.ProjectId == selectedProjectId)
                 .OrderBy(t => t.Path)
-                .Select(t => new TagVm { Id = t.Id, Path = t.Path!, Name = t.Name!, DataType = (int)t.DataType })
+                .Select(t => new TagVm
+                {
+                    Id = t.Id,
+                    Path = t.Path!,             // View bunu bekliyor
+                    Name = t.Name!,
+                    DataType = (int)t.DataType  // enum -> int
+                })
                 .ToListAsync(ct);
 
             var vm = new TrendVm
@@ -52,9 +66,22 @@ namespace MyWeb.WebApp.Controllers
             return View("~/Views/HistoryUi/Trend.cshtml", vm);
         }
 
-        // basit view-model’ler
-        public sealed record ProjectVm { public int Id { get; set; } public string Key { get; set; } = ""; public string Name { get; set; } = ""; }
-        public sealed record TagVm { public int Id { get; set; } public string Path { get; set; } = ""; public string Name { get; set; } = ""; public int DataType { get; set; } }
+        // ==== ViewModel'ler (Razor 'HistoryUiController.TrendVm' bekliyor) ====
+        public sealed record ProjectVm
+        {
+            public int Id { get; set; }
+            public string Key { get; set; } = "";
+            public string Name { get; set; } = "";
+        }
+
+        public sealed record TagVm
+        {
+            public int Id { get; set; }
+            public string Path { get; set; } = "";
+            public string Name { get; set; } = "";
+            public int DataType { get; set; }
+        }
+
         public sealed record TrendVm
         {
             public List<ProjectVm> Projects { get; set; } = new();

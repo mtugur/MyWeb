@@ -1,1 +1,19 @@
-﻿Release build: OK
+﻿  Determining projects to restore...
+  Restored C:\Users\User\Desktop\Proje\MyWeb\src\Core\MyWeb.Core\MyWeb.Core.csproj (in 72 ms).
+  Restored C:\Users\User\Desktop\Proje\MyWeb\src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\MyWeb.Communication.Siemens.csproj (in 1.54 sec).
+  Restored C:\Users\User\Desktop\Proje\MyWeb\src\Infrastructure\MyWeb.Infrastructure.Data\MyWeb.Persistence.csproj (in 2.94 sec).
+  Restored C:\Users\User\Desktop\Proje\MyWeb\src\Runtime\MyWeb.Runtime\MyWeb.Runtime.csproj (in 3.64 sec).
+  Restored C:\Users\User\Desktop\Proje\MyWeb\src\WebApp\MyWeb.WebApp\MyWeb.WebApp.csproj (in 3.65 sec).
+  MyWeb.Core -> C:\Users\User\Desktop\Proje\MyWeb\src\Core\MyWeb.Core\bin\Release\net9.0\MyWeb.Core.dll
+  MyWeb.Communication.Siemens -> C:\Users\User\Desktop\Proje\MyWeb\src\Modules\Communication.Siemens\MyWeb.Communication.Siemens\bin\Release\net9.0\MyWeb.Communication.Siemens.dll
+  MyWeb.Persistence -> C:\Users\User\Desktop\Proje\MyWeb\src\Infrastructure\MyWeb.Infrastructure.Data\bin\Release\net9.0\MyWeb.Persistence.dll
+  MyWeb.Runtime -> C:\Users\User\Desktop\Proje\MyWeb\src\Runtime\MyWeb.Runtime\bin\Release\net9.0\MyWeb.Runtime.dll
+  MyWeb.WebApp -> C:\Users\User\Desktop\Proje\MyWeb\src\WebApp\MyWeb.WebApp\bin\Release\net9.0\MyWeb.WebApp.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:14.66
+
+Workload updates are available. Run `dotnet workload list` for more information.

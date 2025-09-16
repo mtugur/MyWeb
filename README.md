@@ -68,3 +68,13 @@ Ignition benzeri, modüler SCADA/MES temelli bir .NET çözümü.
 	Sx: Rollup/aggregate (saatlik/günlük)
 
 	Güvenlik/Yetkilendirme (Identity)
+
+## Quick Start (S3)
+	- Run: `dotnet run --project .\src\WebApp\MyWeb.WebApp\MyWeb.WebApp.csproj`
+	- Trend: `http://localhost:5113/history/trend`
+	- State & Export: `powershell -ExecutionPolicy Bypass -File .\scripts\Save-StateAndPush.ps1 -Message "..."`
+
+Artifacts:
+	- `_export\*.txt` → ChatGPT Project Files’a yükle
+	- `_state\*` → build/log/snapshot izlenebilirliği
+	- `_packages\demo.mywebpkg` → örnek paket

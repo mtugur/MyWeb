@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyWeb.Persistence.Catalog;
 using MyWeb.Persistence.Historian;
@@ -7,6 +8,7 @@ namespace MyWeb.WebApp.Controllers.Api
 {
     [ApiController]
     [Route("api/hist")]
+    [Authorize(Policy = "CanUseHistorian")] // eri?im kural?
     public class HistoryController : ControllerBase
     {
         private readonly CatalogDbContext _catalog;
@@ -57,10 +59,10 @@ namespace MyWeb.WebApp.Controllers.Api
             return Ok(data);
         }
 
-        // Ör: /api/hist/samples?tagId=1&from=2025-08-13T08:50:00Z&take=200
+        // �r: /api/hist/samples?tagId=1&from=2025-08-13T08:50:00Z&take=200
         [HttpGet("samples")]
         public async Task<IActionResult> GetSamples(
-            [FromQuery] long tagId,
+            [FromQuery] int tagId,
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             [FromQuery] int take = 1000)
