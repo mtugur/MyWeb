@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MyWeb.WebApp.Auth;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection; // CreateScope/GetRequiredService
 using Microsoft.Extensions.Options;
 using MyWeb.Communication.Siemens;
@@ -10,16 +11,24 @@ using MyWeb.WebApp.Infrastructure;            // AddMyWebAuth
 using MyWeb.Infrastructure.Data.Identity;     // IdentityDb (auth şeması)
 using Serilog;
 using System.Text;
+using System.Text.Json.Serialization;         // JsonStringEnumConverter
+using MyWeb.WebApp.Services.Auth;             // IRefreshTokenStore, InMemoryRefreshTokenStore
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Kimlik / Yetkilendirme (Cookie + Identity) ---
+// Stage-2 Auth (JWT, middleware vs.)
+builder.Services.AddStage2Auth(builder.Configuration);
+
+// Kimlik / Yetkilendirme (Cookie + Identity)
 builder.Services.AddMyWebAuth(builder.Configuration);
 
-// --- Kod sayfaları (ör. CP1254) ---
+// In-memory refresh token store (hafif)
+builder.Services.AddSingleton<IRefreshTokenStore, InMemoryRefreshTokenStore>();
+
+// Kod sayfaları (ör. CP1254)
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-// --- Serilog ---
+// Serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
@@ -33,7 +42,7 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog(Log.Logger);
 
-// --- EF Core DbContext kayıtları (tek DB, iki şema: catalog/hist) ---
+// EF Core DbContext kayıtları (tek DB, iki şema: catalog/hist)
 builder.Services.AddDbContext<CatalogDbContext>(opt =>
 {
     opt.UseSqlServer(
@@ -51,11 +60,11 @@ builder.Services.AddDbContext<HistorianDbContext>(opt =>
 // [Runtime] Bootstrap/Package yükleme + snapshot servisleri (HostedService)
 MyWeb.Runtime.ServiceCollectionExtensions.AddMyWebRuntime(builder.Services, builder.Configuration);
 
-// --- PLC bağlantı ayarları ---
+// PLC bağlantı ayarları
 builder.Services.Configure<PlcConnectionSettings>(
     builder.Configuration.GetSection("PlcConnectionSettings"));
 
-// --- Siemens kanalını DI ile kaydet ---
+// Siemens kanalını DI ile kaydet
 builder.Services.AddSingleton<ICommunicationChannel>(sp =>
 {
     var channel = new SiemensCommunicationChannel(
@@ -84,14 +93,19 @@ builder.Services.AddSingleton<ICommunicationChannel>(sp =>
     return channel;
 });
 
-// --- MVC / API ---
-builder.Services.AddControllersWithViews();
+// MVC / API (+ enum'ları JSON'da string)
+builder.Services
+    .AddControllersWithViews()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// --- Swagger ---
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Stage-2 Auth pipeline
+app.UseStage2Auth();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -109,7 +123,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// --- Kimlik middleware (ÖNCE Authentication, sonra Authorization) ---
+// Kimlik middleware (ÖNCE Authentication, sonra Authorization)
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -120,7 +134,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 ).WithStaticAssets();
 
-// --- EF Core otomatik migrasyon (idempotent) ---
+// EF Core otomatik migrasyon (idempotent)
 using (var scope = app.Services.CreateScope())
 {
     var catalog = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
@@ -131,7 +145,7 @@ using (var scope = app.Services.CreateScope())
     {
         catalog.Database.Migrate();
         hist.Database.Migrate();
-        authDb.Database.Migrate(); // ← auth şeması (Identity)
+        authDb.Database.Migrate(); // auth şeması (Identity)
     }
     catch (Exception ex)
     {

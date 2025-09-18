@@ -1,6 +1,6 @@
 ﻿== PROJE AGACI (src) ==
 Folder PATH listing
-Volume serial number is 000000DD EAE4:C23B
+Volume serial number is 00000085 EAE4:C23B
 C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC
 ├───Core
 │   └───MyWeb.Core
@@ -292,6 +292,16 @@ C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC
         │   MyWeb.WebApp.csproj.user
         │   Program.cs
         │   
+        ├───Auth
+        │       JwtOptions.cs
+        │       JwtTokenService.cs
+        │       Stage2AuthExtensions.cs
+        │       
+        ├───Authorization
+        │       DbTagPermissionService.cs
+        │       HistPermissionFilter.cs
+        │       ITagPermissionService.cs
+        │       
         ├───bin
         │   └───Release
         │       └───net9.0
@@ -300,6 +310,7 @@ C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC
         │           │   Azure.Core.dll
         │           │   Azure.Identity.dll
         │           │   Humanizer.dll
+        │           │   Microsoft.AspNetCore.Authentication.JwtBearer.dll
         │           │   Microsoft.AspNetCore.Cryptography.Internal.dll
         │           │   Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
         │           │   Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
@@ -528,23 +539,30 @@ C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC
         │   │   PlcController.cs
         │   │   
         │   └───Api
-        │           DiagnosticsController.cs
-        │           HistoryController.cs
-        │           ProjectsController.cs
-        │           SamplesController.cs
-        │           TagsController.cs
-        │           
+        │       │   AuthController.cs
+        │       │   DiagnosticsController.cs
+        │       │   HistoryController.cs
+        │       │   ProjectsController.cs
+        │       │   SamplesController.cs
+        │       │   TagsController.cs
+        │       │   
+        │       └───Admin
+        │               PermissionsAdminController.cs
+        │               
         ├───Infrastructure
         │       AuthSetup.cs
         │       
         ├───Logs
-        │       app-20250828_004.log
-        │       app-20250829.log
-        │       app-20250829_001.log
-        │       app-20250829_002.log
-        │       app-20250829_003.log
-        │       app-20250829_004.log
-        │       app-20250916.log
+        │       app-20250918_059.log
+        │       app-20250918_060.log
+        │       app-20250918_061.log
+        │       app-20250918_062.log
+        │       app-20250918_063.log
+        │       app-20250918_064.log
+        │       app-20250918_065.log
+        │       
+        ├───Middleware
+        │       ApiJwtEnforcerMiddleware.cs
         │       
         ├───Models
         │       ErrorViewModel.cs
@@ -675,6 +693,14 @@ C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC
         ├───Properties
         │       launchSettings.json
         │       
+        ├───Services
+        │   └───Auth
+        │           InMemoryRefreshTokenStore.cs
+        │           IRefreshTokenStore.cs
+        │           
+        ├───Startup
+        │       AuthSeederHostedService.cs
+        │       
         ├───Views
         │   │   _ViewImports.cshtml
         │   │   _ViewStart.cshtml
@@ -692,6 +718,7 @@ C:\USERS\USER\DESKTOP\PROJE\MYWEB\SRC
         │   └───Shared
         │           Error.cshtml
         │           _Layout.cshtml
+        │           _Layout.cshtml.bak
         │           _Layout.cshtml.css
         │           _ValidationScriptsPartial.cshtml
         │           

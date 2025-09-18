@@ -1,0 +1,207 @@
+{
+  "info": {
+    "_postman_id": "faa2dd22-7f15-4fcd-833c-1bb4473b58f7",
+    "name": "MyWeb Auth+Admin (NEW)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"admin@local\", \"password\": \"MyWeb!2025\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login OK\", function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "if (json && json.accessToken) { pm.collectionVariables.set(\"token\", json.accessToken); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Me OK\", function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "if (json && json.userId) { pm.collectionVariables.set(\"userId\", json.userId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Permissions",
+      "item": [
+        {
+          "name": "Create Permission Set",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/permissions/sets",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"OperatorRead\", \"description\": \"Operator read access\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create Set\", function () { pm.expect([200,201,409]).to.include(pm.response.code); });",
+                  "var j = pm.response.json();",
+                  "if (j && j.id) { pm.collectionVariables.set(\"permSetId\", j.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Permission Sets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/admin/permissions/sets"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List OK\", function () { pm.response.to.have.status(200); });",
+                  "var a = pm.response.json();",
+                  "if (Array.isArray(a) && a.length && a[0].id) { pm.collectionVariables.set(\"permSetId\", a[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Permission (Project=2, Read)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/permissions/perms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"permissionSetId\": \"{{permSetId}}\", \"scopeType\": \"{{permScopeTypeProject}}\", \"scopeId\": \"{{projectId}}\", \"access\": \"{{permAccessRead}}\"}"
+            }
+          }
+        },
+        {
+          "name": "Assign Set to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/permissions/assign/user",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\": \"{{userId}}\", \"permissionSetId\": \"{{permSetId}}\"}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5113"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "permSetId",
+      "value": ""
+    },
+    {
+      "key": "projectId",
+      "value": "2"
+    },
+    {
+      "key": "tagId",
+      "value": "1"
+    },
+    {
+      "key": "permScopeTypeProject",
+      "value": "2"
+    },
+    {
+      "key": "permAccessRead",
+      "value": "0"
+    }
+  ]
+}
